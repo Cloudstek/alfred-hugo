@@ -1,0 +1,9 @@
+{
+    "compact": "true",
+    "plugins": [
+        "transform-flow-strip-types"
+    ],
+    "presets": [
+        "es2017"
+    ]
+}
