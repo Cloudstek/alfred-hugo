@@ -1,0 +1,12 @@
+---
+parser: babel-eslint
+extends: xo
+env:
+  node: true
+rules:
+  "flowtype-errors/show-errors": 2
+  indent:
+    - error
+    - 4
+plugins:
+  - flowtype-errors

@@ -1,4 +1,6 @@
 [ignore]
+<PROJECT_ROOT>/[^/]*\.js
+<PROJECT_ROOT>/[^/]*\.js\.flow
 
 [include]
 
