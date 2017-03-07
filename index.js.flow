@@ -17,6 +17,19 @@ const Fuse = require('fuse.js');
  */
 class Hugo {
     /**
+     * FuseJS defaults
+     * @see https://github.com/krisk/fuse#options
+     * @type {Object}
+     */
+    _fuseDefaults: Object;
+
+    /**
+     * Hugo options
+     * @type {Object}
+     */
+    _options: Object;
+
+    /**
      * Output buffer
      * @type {Object}
      */
@@ -44,27 +57,26 @@ class Hugo {
     config: Conf;
 
     /**
-     * Hugo options
-     * @type {Object}
-     */
-    options: Object;
-
-    /**
      * Hugo constructor
-     * @param {Object} options Hugo options
      * @constructor
      */
-    constructor(options: Object = {}) {
-        // Iniyislixr output buffer
-        this._outputBuffer = {};
+    constructor() {
+        // Set defaults for FuseJS
+        this._fuseDefaults = {
+            keys: ['title'],
+            threshold: 0.4
+        };
 
         // Save options
-        this.options = Object.assign({}, options, {
-            checkUpdates: false,
-            updateInterval: 86400,
+        this._options = {
+            checkUpdates: true,
+            updateInterval: moment.duration(1, 'days'),
             updateNotification: true,
             updateItem: false
-        });
+        };
+
+        // Initialize output buffer
+        this._outputBuffer = {};
 
         // Configure config store
         this.config = new Conf({
@@ -77,9 +89,6 @@ class Hugo {
             cwd: Hugo.workflowMeta.cache,
             version: Hugo.workflowMeta.version
         });
-
-        // Check for updates
-        this.checkUpdates();
     }
 
     /**
@@ -198,7 +207,7 @@ class Hugo {
         let query: string = process.argv[2];
 
         if (query && callback && query === keyword) {
-            let query: string = process.argv[3] || '';
+            query = process.argv[3] || '';
             callback(query);
         }
 
@@ -210,92 +219,154 @@ class Hugo {
      * @async
      */
     async checkUpdates() {
-        let lastUpdate: moment = moment(this.config.get('hugo_last_update'), 'X') || moment();
-        let nextUpdate = lastUpdate.add(this.options.updateInterval, 's');
+        // No need to check if we're not showing anything, duh.
+        if (this._options.checkUpdates !== true ||
+                (this._options.updateItem !== true && this._options.updateNotification !== true)) {
+            return;
+        }
 
+        // Get package information
         let pkg: Object = await readPkg(process.cwd());
-        let wfName: string = process.env.alfred_workflow_name || '';
+        let wfName: string = Hugo.workflowMeta.name || '';
         let wfIcon: string = Hugo.workflowMeta.icon || '';
         let latest: string = this.cache.get('hugo_latest_version');
+        let checkedOnline: boolean = false;
 
-        // No need to check if we're not showing anything, duh.
-        if (this.options.updateItem === false && this.options.updateNotification === false) {
+        // Don't do anything if the package wasn't found last time.
+        if (latest === false) {
             return;
         }
 
         // Check update
-        if (moment().isSameOrAfter(nextUpdate, 'second') || !latest) {
-            latest = await latestVersion(pkg.name);
+        if (latest === null) {
+            latest = await latestVersion(pkg.name)
+                .catch(() => {
+                    // Return false on failure (e.g. not found).
+                    return false;
+                });
+
+            // We checked online for updates
+            checkedOnline = true;
 
             // Update last check time
-            this.config.set('hugo_last_update', moment().format('X'));
+            this.cache.set('hugo_latest_version', latest, {
+                maxAge: this._options.updateInterval.as('milliseconds')
+            });
         }
 
         // Display notification
-        if (semver.gt(latest, pkg.version)) {
-            if (this.options.updateNotification === true) {
+        if (latest && semver.gt(latest, pkg.version)) {
+            if (checkedOnline === true && this._options.updateNotification === true) {
                 notifier.notify({
-                    title: `${wfName} workflow update available!`,
-                    message: `Version ${latest} is available. Run 'npm install -g ${pkg.name}' to update.`,
-                    icon: wfIcon
+                    title: wfName,
+                    subtitle: `Workflow version ${latest} available`,
+                    message: `Run 'npm install -g ${pkg.name}' to update.`,
+                    sender: 'com.runningwithcrayons.Alfred-3',
+                    timeout: 10
                 });
-            } else if (this.options.updateItem === true) {
+            }
+            if (this._options.updateItem === true) {
                 this.addItem({
-                    title: `${wfName} workflow update available!`,
+                    title: `Workflow update available!`,
                     subtitle: `Version ${latest} is available. Run 'npm install -g ${pkg.name}' to update.`,
-                    icon: wfIcon
+                    icon: wfIcon,
+                    arg: {
+                        arg: `npm update -g ${pkg.name}`,
+                        variables: {
+                            task: 'wfUpdate'
+                        }
+                    }
                 });
             }
         }
     }
 
     /**
-     * Filter items with fuse.js
+     * Filter added items (output buffer) with fuse.js
      * @see http://fusejs.io
-     * @return {Array}
+     * @param {string} query Search string
+     * @param {Object} options fuse.js options
+     * @return {void}
      */
-    matches(input: string, options: Object = {}): Array<Object> {
-        options = Object.assign({}, {
-            keys: ['title']
-        }, options);
+    filterItems(query: string, options: Object = {}): void {
+        options = Object.assign({}, this._fuseDefaults, options);
+
+        if (query.length === 0) {
+            return;
+        }
 
         // Create fuse.js fuzzy search object
         let fuse = new Fuse(this._outputBuffer, options);
 
-        // Return results
-        return fuse.search(input) || [];
+        // Set output buffer to matching items
+        this._outputBuffer.items = fuse.search(query) || [];
     }
 
     /**
-     * Get rerun parameter
-     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
-     * @return {number|null} Interval to rerun the script when idle
+     * Set Hugo options
+     * @param {Object} value Options to set
+     * @return {void}
      */
-    get rerun(): ?number {
-        return this._rerun;
+    options(value: Object): void {
+        // Convert updateInterval to moment.Duration object
+        if (value.updateInterval && !moment.isDuration(value.updateInterval)) {
+            value.updateInterval = moment.duration(value.updateInterval) || moment.duration(1, 'days');
+        }
+
+        this._options = Object.assign({}, this._options, value);
+    }
+
+    /**
+     * Filter list of candidates with fuse.js
+     * @see http://fusejs.io
+     * @param {Array<Object>} candidates Input data
+     * @param {string} query Search string
+     * @param {Object} options fuse.js options
+     * @return {Array<Object>}
+     */
+    matches(candidates: Array<Object>, query: string, options: Object = {}): Array<Object> {
+        options = Object.assign({}, this._fuseDefaults, options);
+
+        if (query.length === 0) {
+            return candidates;
+        }
+
+        // Create fuse.js fuzzy search object
+        let fuse = new Fuse(candidates, options);
+
+        // Return results
+        return fuse.search(query) || [];
     }
 
     /**
      * Set rerun parameter
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {number} value Interval to rerun the script when idle
-     * @return {void}
+     * @return {Hugo}
      */
-    set rerun(value: number): void {
+    rerun(value: number): Hugo {
         value = parseFloat(value);
 
         if (value && value > 0.1 && value <= 5) {
             this._rerun = value;
         }
+
+        return this;
     }
 
     /**
      * Flush the output buffer so Alfred shows our items
-     * @type {void}
+     * @async
      */
-    feedback(): void {
+    async feedback() {
         if (this._rerun) {
             this._outputBuffer.rerun = this._rerun;
+        }
+
+        // Check for updates
+        if (this._options.checkUpdates === true) {
+            await this.checkUpdates()
+                .catch(() => {});
         }
 
         // Output JSON
@@ -308,18 +379,36 @@ class Hugo {
     /**
      * Fetch url and parse JSON. Useful for REST APIs.
      * @see https://www.npmjs.com/package/got
-     * @see https://nodejs.org/api/http.html#http_http_request_options_callback
+     * @param {string} url Url to request
      * @param {Object} options http.request options
+     * @param {number|null} cacheAge Cache lifetime (in seconds), above 0 to enable or null to disable.
      * @return {Object|string}
      * @async
      */
-    async fetch(url: string, options: Object): Object|string {
+    async fetch(url: string, options: Object = {}, cacheAge: ?number = null): Object|string {
+        // Set default options
         options = Object.assign({}, {
             json: true
         }, options);
 
+        // Check cache for a hit
+        if (cacheAge && cacheAge > 0) {
+            let cacheResult: ?Object|?string = this.cache.get(url);
+
+            if (cacheResult) {
+                return cacheResult;
+            }
+        }
+
+        // Do request
         return got(url, options)
             .then(response => {
+                if (cacheAge && cacheAge > 0) {
+                    this.cache.set(url, response.body, {
+                        maxAge: cacheAge * 1000
+                    });
+                }
+
                 return response.body;
             });
     }

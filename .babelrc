@@ -1,10 +1,12 @@
 {
   "comments": false,
-  "compact": false,
+  "compact": true,
   "plugins": [
-    "transform-flow-strip-types"
+    "transform-class-properties",
+    "transform-runtime"
   ],
   "presets": [
+    "flow",
     ["env", {
       "targets": {
         "node": 4
