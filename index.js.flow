@@ -1,16 +1,16 @@
 // @flow
 'use strict';
 
-const Conf = require('conf');
-const CacheConf = require('cache-conf');
-const moment = require('moment');
-const readPkg = require('read-pkg');
-const latestVersion = require('latest-version');
-const semver = require('semver');
-const notifier = require('node-notifier');
-const path = require('path');
-const got = require('got');
-const Fuse = require('fuse.js');
+import Conf from 'conf';
+import CacheConf from 'cache-conf';
+import moment from 'moment';
+import readPkg from 'read-pkg';
+import latestVersion from 'latest-version';
+import semver from 'semver';
+import notifier from 'node-notifier';
+import path from 'path';
+import got from 'got';
+import Fuse from 'fuse.js';
 
 /**
  * Hugo
@@ -103,7 +103,8 @@ class Hugo {
             themeSelectionBackground: process.env.alfred_theme_selection_background,
             themeSubtext: parseFloat(process.env.alfred_theme_subtext),
             preferences: process.env.alfred_preferences,
-            preferencesLocalHash: process.env.alfred_preferences_localhash
+            preferencesLocalHash: process.env.alfred_preferences_localhash,
+            debug: process.env.alfred_debug === 1
         };
     }
 
@@ -132,6 +133,13 @@ class Hugo {
     addItem(item: Object): void {
         if (!this._outputBuffer.items) {
             this._outputBuffer.items = [];
+        }
+
+        if (!item.title) {
+            if (Hugo.alfredMeta.debug === true) {
+                console.error('Item skipped, missing title.');
+            }
+            return;
         }
 
         if (item.arg && typeof item.arg === 'object') {
@@ -296,7 +304,7 @@ class Hugo {
         }
 
         // Create fuse.js fuzzy search object
-        let fuse = new Fuse(this._outputBuffer, options);
+        let fuse = new Fuse(this._outputBuffer.items, options);
 
         // Set output buffer to matching items
         this._outputBuffer.items = fuse.search(query) || [];
@@ -369,11 +377,15 @@ class Hugo {
                 .catch(() => {});
         }
 
+        let output = this._outputBuffer;
+
         // Output JSON
-        console.log(JSON.stringify(this._outputBuffer, null, '\t'));
+        console.log(JSON.stringify(output, null, '\t'));
 
         // Reset output buffer
         this._outputBuffer = {};
+
+        return output;
     }
 
     /**
