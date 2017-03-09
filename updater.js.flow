@@ -1,0 +1,157 @@
+// @flow
+'use strict';
+
+import CacheConf from 'cache-conf';
+import moment from 'moment';
+import readPkg from 'read-pkg';
+import latestVersion from 'latest-version';
+import got from 'got';
+
+/**
+ * Hugo Updater
+ */
+class Updater {
+    /**
+     * Cache store
+     * @see https://www.npmjs.com/package/cache-conf
+     * @type {CacheConf}
+     */
+    cache: CacheConf;
+
+    /**
+     * Hugo updater constructor
+     * @constructor
+     */
+    constructor() {
+        // Configure cache store
+        this.cache = new CacheConf({
+            configName: 'updater',
+            cwd: process.env.alfred_workflow_cache,
+            version: process.env.alfred_workflow_version
+        });
+    }
+
+    /**
+     * Check Packal for updates
+     * @param {moment.Duration} interval Update interval
+     * @async
+     */
+    async checkPackal(interval: moment.Duration): Object {
+        // Bundle ID
+        const bundleId: ?string = process.env.alfred_workflow_bundleid;
+
+        if (!bundleId) {
+            console.error('No bundle ID, not checking Packal for updates.');
+            return;
+        }
+
+        // Packal URL
+        const searchParam: string = encodeURIComponent('site:packal.org ' + bundleId);
+        const pkgUrl: string = `https://encrypted.google.com/search?sourceid=chrome&ie=UTF-8&q=${searchParam}&btnI`;
+
+        let latest = await got(`https://github.com/packal/repository/blob/master/${bundleId}/appcast.xml`)
+            .catch(() => {
+                // Set to false on failure (e.g. not found).
+                return false;
+            })
+            .then(response => {
+                // Get version from XML
+                let version: string = response.body.match(/<version>(.+)<\/version>/)[1];
+
+                if (!version) {
+                    return false;
+                }
+
+                return {
+                    version: version,
+                    url: pkgUrl,
+                    checkedOnline: false
+                };
+            });
+
+        // Cache results
+        this.cache.set('latest_version_packal', latest, {
+            maxAge: interval.as('milliseconds')
+        });
+
+        // Got it from the internet!
+        if (latest) {
+            latest.checkedOnline = true;
+        }
+
+        return latest;
+    }
+
+    /**
+     * Check NPM for updates
+     * @param {moment.Duration} interval Update interval
+     * @async
+     */
+    async checkNpm(interval: moment.Duration, pkg: ?Object = null): Object {
+        // Get details from package.json
+        pkg = pkg || await readPkg(process.cwd());
+
+        // NPM URL
+        const url: string = `https://www.npmjs.com/package/${pkg.name}`;
+
+        // Check for updates
+        let latest = await latestVersion(pkg.name)
+            .catch(err => {
+                // Set to false on failure (e.g. not found).
+                console.error(err);
+                return false;
+            })
+            .then(version => ({
+                version: version,
+                url: url,
+                checkedOnline: false
+            }));
+
+        // Cache results
+        this.cache.set('latest_version_npm', latest, {
+            maxAge: interval.as('milliseconds')
+        });
+
+        // Got it from the internet!
+        if (latest) {
+            latest.checkedOnline = true;
+        }
+
+        return latest;
+    }
+
+    /**
+     * Check for updates
+     * @param {string} source Update source (npm or packal)
+     * @param {moment.Duration} interval Update interval
+     * @async
+     */
+    async checkUpdates(source: string, interval: moment.Duration, pkg: ?Object = null): Object {
+        // Get from cache
+        let latest = this.cache.get(`latest_version_${source}`);
+
+        // Don't do anything if the package wasn't found last time.
+        if (latest === false) {
+            return;
+        }
+
+        // Check for updates online
+        if (!latest) {
+            switch (source.toLowerCase()) {
+                case 'npm':
+                    return this.checkNpm(interval, pkg);
+                case 'packal':
+                    return this.checkPackal(interval);
+                default:
+                    return;
+            }
+        }
+
+        // Got it from cache!
+        latest.checkedOnline = false;
+
+        return latest;
+    }
+}
+
+module.exports = new Updater();

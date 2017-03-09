@@ -1,30 +1,46 @@
 import test from 'ava';
 import hookStd from 'hook-std';
+
 import {hugo} from './_init';
 
-const items = [
-    {
-        title: 'Michael Blob',
-        email: 'bla@test.com'
-    },
-    {
-        title: 'Harry Test',
-        email: 'bla@test.net'
-    },
-    {
-        title: 'Pinguin Test',
-        email: 'bla@test.org'
-    }
-];
+/**
+ * Set-up
+ */
+test.beforeEach(t => {
+    const h = hugo();
 
-test.beforeEach(() => {
-    const unhook = hookStd.stdout(() => {
-        unhook();
+    h.options({
+        checkUpdates: false
     });
+
+    t.context = h;
 });
 
-test('items only', async t => {
-    const h = hugo();
+/**
+ * Items only
+ */
+test('items only', t => {
+    const h = t.context;
+
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        t.deepEqual(JSON.parse(output), {
+            items: [
+                {
+                    title: 'foo'
+                },
+                {
+                    title: 'bar',
+                    subtitle: 'foo'
+                },
+                {
+                    title: 'boop',
+                    subtitle: 'bleep'
+                }
+            ]
+        });
+    });
 
     h.addItem({
         title: 'foo'
@@ -41,27 +57,28 @@ test('items only', async t => {
         }
     ]);
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        items: [
-            {
-                title: 'foo'
-            },
-            {
-                title: 'bar',
-                subtitle: 'foo'
-            },
-            {
-                title: 'boop',
-                subtitle: 'bleep'
-            }
-        ]
-    });
+    h.feedback();
 });
 
-test('variables only', async t => {
-    const h = hugo();
+/**
+ * Variables only
+ */
+test('variables only', t => {
+    const h = t.context;
+
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        t.deepEqual(JSON.parse(output), {
+            variables: {
+                foo: 'bar',
+                bleep: 'bloop',
+                boop: {
+                    tap: 'top'
+                }
+            }
+        });
+    });
 
     h.addVariable('foo', 'bar');
     h.addVariables({
@@ -71,43 +88,60 @@ test('variables only', async t => {
         }
     });
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        variables: {
-            foo: 'bar',
-            bleep: 'bloop',
-            boop: {
-                tap: 'top'
-            }
-        }
-    });
+    h.feedback();
 });
 
-test('variables and items combined', async t => {
-    const h = hugo();
+/**
+ * Variables and items combined
+ */
+test('variables and items combined', t => {
+    const h = t.context;
+
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        t.deepEqual(JSON.parse(output), {
+            variables: {
+                foo: 'bar'
+            },
+            items: [
+                {
+                    title: 'foo'
+                }
+            ]
+        });
+    });
 
     h.addVariable('foo', 'bar');
     h.addItem({
         title: 'foo'
     });
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        variables: {
-            foo: 'bar'
-        },
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    h.feedback();
 });
 
-test('rerun parameter', async t => {
-    const h = hugo();
+/**
+ * Retun parameter
+ * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+ */
+test('rerun parameter', t => {
+    const h = t.context;
+
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        t.deepEqual(JSON.parse(output), {
+            rerun: 1.4,
+            variables: {
+                foo: 'bar'
+            },
+            items: [
+                {
+                    title: 'foo'
+                }
+            ]
+        });
+    });
 
     h.rerun(1.4);
     h.addVariable('foo', 'bar');
@@ -115,46 +149,64 @@ test('rerun parameter', async t => {
         title: 'foo'
     });
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        rerun: 1.4,
-        variables: {
-            foo: 'bar'
-        },
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    h.feedback();
 });
 
-test('invalid rerun parameter', async t => {
-    const h = hugo();
+/**
+ * Invalid rerun parameter
+ * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+ */
+test('invalid rerun parameter', t => {
+    const h = t.context;
 
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        output = JSON.parse(output);
+
+        // Output should not contain rerun
+        t.falsy(output.rerun);
+        t.deepEqual(output, {
+            variables: {
+                foo: 'bar'
+            },
+            items: [
+                {
+                    title: 'foo'
+                }
+            ]
+        });
+    });
+
+    // Rerun is out of bounds
     h.rerun(100);
+
+    // Add some variables and items
     h.addVariable('foo', 'bar');
     h.addItem({
         title: 'foo'
     });
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        variables: {
-            foo: 'bar'
-        },
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    h.feedback();
 });
 
-test('invalid items', async t => {
-    const h = hugo();
+/**
+ * Invalid items
+ */
+test('invalid items', t => {
+    const h = t.context;
+
+    const unhook = hookStd.stdout(output => {
+        unhook();
+
+        t.deepEqual(JSON.parse(output), {
+            items: [
+                {
+                    title: 'foo'
+                }
+            ]
+        });
+    });
 
     // Add invalid items
     h.addItem({
@@ -175,13 +227,5 @@ test('invalid items', async t => {
         title: 'foo'
     });
 
-    let output = await h.feedback();
-
-    t.deepEqual(output, {
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    h.feedback();
 });

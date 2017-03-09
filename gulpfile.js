@@ -40,10 +40,10 @@ const testTask = () => {
 gulp.task('lint', lintTask);
 gulp.task('transpile', transpileTask);
 gulp.task('build', ['lint'], transpileTask);
-gulp.task('test', ['lint'], testTask);
+gulp.task('test', ['build'], testTask);
 
 gulp.task('watch', ['build'], done => {
     gulp.watch('src/*.js.flow', ['transpile']);
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', ['build', 'test']);

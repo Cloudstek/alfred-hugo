@@ -7,5 +7,12 @@ exports.hugo = () => {
     delete require.cache[path.resolve(__dirname, '../index.js')];
     process.env.alfred_workflow_cache = tempfile();
 
-    return require('..');
+    return require('../index');
+};
+
+exports.updater = () => {
+    delete require.cache[path.resolve(__dirname, '../updater.js')];
+    process.env.alfred_workflow_cache = tempfile();
+
+    return require('../updater');
 };

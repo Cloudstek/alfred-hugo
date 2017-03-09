@@ -4,13 +4,13 @@
 import Conf from 'conf';
 import CacheConf from 'cache-conf';
 import moment from 'moment';
-import readPkg from 'read-pkg';
-import latestVersion from 'latest-version';
 import semver from 'semver';
 import notifier from 'node-notifier';
 import path from 'path';
 import got from 'got';
 import Fuse from 'fuse.js';
+
+import updater from './updater';
 
 /**
  * Hugo
@@ -70,9 +70,10 @@ class Hugo {
         // Save options
         this._options = {
             checkUpdates: true,
+            updateSource: 'packal',
             updateInterval: moment.duration(1, 'days'),
             updateNotification: true,
-            updateItem: false
+            updateItem: true
         };
 
         // Initialize output buffer
@@ -80,14 +81,14 @@ class Hugo {
 
         // Configure config store
         this.config = new Conf({
-            cwd: Hugo.workflowMeta.data
+            cwd: this.workflowMeta.data
         });
 
         // Configure cache store
         this.cache = new CacheConf({
             configName: 'cache',
-            cwd: Hugo.workflowMeta.cache,
-            version: Hugo.workflowMeta.version
+            cwd: this.workflowMeta.cache,
+            version: this.workflowMeta.version
         });
     }
 
@@ -95,7 +96,7 @@ class Hugo {
      * Alfred metadata
      * @return {Object}
      */
-    static get alfredMeta(): Object {
+    get alfredMeta(): Object {
         return {
             version: process.env.alfred_version,
             theme: process.env.alfred_theme,
@@ -104,15 +105,35 @@ class Hugo {
             themeSubtext: parseFloat(process.env.alfred_theme_subtext),
             preferences: process.env.alfred_preferences,
             preferencesLocalHash: process.env.alfred_preferences_localhash,
-            debug: process.env.alfred_debug === 1
+            debug: process.env.alfred_debug === '1'
         };
+    }
+
+    /**
+     * Alfred user input
+     * @return {string}
+     */
+    get input(): string {
+        if (process.argv.length > 3) {
+            return process.argv[3] || '';
+        }
+        return process.argv[2] || '';
+    }
+
+    /**
+     * Current output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @return {Object} Object to be output and interpreted by Alfred
+     */
+    get outputBuffer(): Object {
+        return this._outputBuffer;
     }
 
     /**
      * Workflow metadata
      * @return {Object}
      */
-    static get workflowMeta(): Object {
+    get workflowMeta(): Object {
         return {
             name: process.env.alfred_workflow_name,
             version: process.env.alfred_workflow_version,
@@ -128,23 +149,23 @@ class Hugo {
      * Add item to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {Object} item Item to add
-     * @type {void}
+     * @type {Hugo}
      */
-    addItem(item: Object): void {
+    addItem(item: Object): Hugo {
         if (!this._outputBuffer.items) {
             this._outputBuffer.items = [];
         }
 
         if (!item.title) {
-            if (Hugo.alfredMeta.debug === true) {
+            if (this.alfredMeta.debug === true) {
                 console.error('Item skipped, missing title.');
             }
-            return;
+            return this;
         }
 
         if (item.arg && typeof item.arg === 'object') {
-            let arg = item.arg.arg;
-            let variables = item.arg.variables;
+            let arg = item.arg.arg || '';
+            let variables = item.arg.variables || {};
 
             item.arg = JSON.stringify({
                 alfredworkflow: {
@@ -155,23 +176,28 @@ class Hugo {
         }
 
         this._outputBuffer.items.push(item);
+
+        return this;
     }
 
     /**
      * Add items to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
-     * @param {Array<Object>} items List of items to add
-     * @type {void}
+     * @param {Array.<Object>} items List of items to add
+     * @type {Hugo}
      */
-    addItems(items: Array<Object>): void {
+    addItems(items: Array<Object>): Hugo {
         if (!this._outputBuffer.items) {
-            this._outputBuffer.items = [];
+            this._outputBuffer.items = items;
+            return this;
         }
 
         items.map(item => {
             this.addItem(item);
             return item;
         });
+
+        return this;
     }
 
     /**
@@ -179,29 +205,33 @@ class Hugo {
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {string} key Variable key
      * @param {string} value Variable value
-     * @type {void}
+     * @type {Hugo}
      */
-    addVariable(key: string, value: string): void {
+    addVariable(key: string, value: string): Hugo {
         if (!this._outputBuffer.variables) {
             this._outputBuffer.variables = {};
         }
 
         this._outputBuffer.variables[key] = value;
+
+        return this;
     }
 
     /**
      * Add session variables to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json/
      * @param {Object} variables List of variables to add
-     * @type {void}
+     * @type {Hugo}
      */
-    addVariables(variables: Object): void {
+    addVariables(variables: Object): Hugo {
         if (!this._outputBuffer.variables) {
             this._outputBuffer.variables = variables;
-            return;
+            return this;
         }
 
         this._outputBuffer.variables = Object.assign({}, this._outputBuffer.variables, variables);
+
+        return this;
     }
 
     /**
@@ -233,60 +263,44 @@ class Hugo {
             return;
         }
 
-        // Get package information
-        let pkg: Object = await readPkg(process.cwd());
-        let wfName: string = Hugo.workflowMeta.name || '';
-        let wfIcon: string = Hugo.workflowMeta.icon || '';
-        let latest: string = this.cache.get('hugo_latest_version');
-        let checkedOnline: boolean = false;
+        await updater.checkUpdates(this._options.updateSource, this._options.updateInterval)
+            .catch(err => {
+                console.error(err);
+            })
+            .then(result => {
+                if (!result) {
+                    return;
+                }
 
-        // Don't do anything if the package wasn't found last time.
-        if (latest === false) {
-            return;
-        }
+                // Version information
+                let current: string = this.workflowMeta.version;
+                let latest: string = result.version;
 
-        // Check update
-        if (latest === null) {
-            latest = await latestVersion(pkg.name)
-                .catch(() => {
-                    // Return false on failure (e.g. not found).
-                    return false;
-                });
-
-            // We checked online for updates
-            checkedOnline = true;
-
-            // Update last check time
-            this.cache.set('hugo_latest_version', latest, {
-                maxAge: this._options.updateInterval.as('milliseconds')
-            });
-        }
-
-        // Display notification
-        if (latest && semver.gt(latest, pkg.version)) {
-            if (checkedOnline === true && this._options.updateNotification === true) {
-                notifier.notify({
-                    title: wfName,
-                    subtitle: `Workflow version ${latest} available`,
-                    message: `Run 'npm install -g ${pkg.name}' to update.`,
-                    sender: 'com.runningwithcrayons.Alfred-3',
-                    timeout: 10
-                });
-            }
-            if (this._options.updateItem === true) {
-                this.addItem({
-                    title: `Workflow update available!`,
-                    subtitle: `Version ${latest} is available. Run 'npm install -g ${pkg.name}' to update.`,
-                    icon: wfIcon,
-                    arg: {
-                        arg: `npm update -g ${pkg.name}`,
-                        variables: {
-                            task: 'wfUpdate'
-                        }
+                // Display notification
+                if (semver.gt(latest, current)) {
+                    if (result.checkedOnline === true && this._options.updateNotification === true) {
+                        notifier.notify({
+                            title: this.workflowMeta.name || 'Alfred',
+                            subtitle: `Workflow version ${latest} available. Current version: ${current}.`,
+                            sender: 'com.runningwithcrayons.Alfred-3',
+                            timeout: 10
+                        });
                     }
-                });
-            }
-        }
+                    if (this._options.updateItem === true) {
+                        this.addItem({
+                            title: `Workflow update available!`,
+                            subtitle: `Version ${latest} is available. Current version: ${current}.`,
+                            icon: this.workflowMeta.icon,
+                            arg: {
+                                arg: result.url,
+                                variables: {
+                                    task: 'wfUpdate'
+                                }
+                            }
+                        });
+                    }
+                }
+            });
     }
 
     /**
@@ -294,13 +308,13 @@ class Hugo {
      * @see http://fusejs.io
      * @param {string} query Search string
      * @param {Object} options fuse.js options
-     * @return {void}
+     * @return {Hugo}
      */
-    filterItems(query: string, options: Object = {}): void {
+    filterItems(query: string, options: Object = {}): Hugo {
         options = Object.assign({}, this._fuseDefaults, options);
 
         if (query.length === 0) {
-            return;
+            return this;
         }
 
         // Create fuse.js fuzzy search object
@@ -308,29 +322,37 @@ class Hugo {
 
         // Set output buffer to matching items
         this._outputBuffer.items = fuse.search(query) || [];
+
+        return this;
     }
 
     /**
      * Set Hugo options
      * @param {Object} value Options to set
-     * @return {void}
+     * @return {Hugo}
      */
-    options(value: Object): void {
+    options(value: Object): Hugo {
         // Convert updateInterval to moment.Duration object
         if (value.updateInterval && !moment.isDuration(value.updateInterval)) {
-            value.updateInterval = moment.duration(value.updateInterval) || moment.duration(1, 'days');
+            if (value.updateInterval < 1) {
+                delete value.updateInterval;
+            } else {
+                value.updateInterval = moment.duration(value.updateInterval, 'seconds') || moment.duration(1, 'days');
+            }
         }
 
         this._options = Object.assign({}, this._options, value);
+
+        return this;
     }
 
     /**
      * Filter list of candidates with fuse.js
      * @see http://fusejs.io
-     * @param {Array<Object>} candidates Input data
+     * @param {Array.<Object>} candidates Input data
      * @param {string} query Search string
      * @param {Object} options fuse.js options
-     * @return {Array<Object>}
+     * @return {Array.<Object>}
      */
     matches(candidates: Array<Object>, query: string, options: Object = {}): Array<Object> {
         options = Object.assign({}, this._fuseDefaults, options);
