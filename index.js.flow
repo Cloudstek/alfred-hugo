@@ -328,20 +328,20 @@ class Hugo {
 
     /**
      * Set Hugo options
-     * @param {Object} value Options to set
+     * @param {Object} options Options to set
      * @return {Hugo}
      */
-    options(value: Object): Hugo {
+    options(options: Object): Hugo {
         // Convert updateInterval to moment.Duration object
-        if (value.updateInterval && !moment.isDuration(value.updateInterval)) {
-            if (value.updateInterval < 1) {
-                delete value.updateInterval;
+        if (options.updateInterval && !moment.isDuration(options.updateInterval)) {
+            if (options.updateInterval < 1) {
+                delete options.updateInterval;
             } else {
-                value.updateInterval = moment.duration(value.updateInterval, 'seconds') || moment.duration(1, 'days');
+                options.updateInterval = moment.duration(options.updateInterval, 'seconds') || moment.duration(1, 'days');
             }
         }
 
-        this._options = Object.assign({}, this._options, value);
+        this._options = Object.assign({}, this._options, options);
 
         return this;
     }
