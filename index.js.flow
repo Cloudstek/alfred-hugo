@@ -1,16 +1,15 @@
 // @flow
-'use strict';
 
-import Conf from 'conf';
-import CacheConf from 'cache-conf';
-import moment from 'moment';
-import semver from 'semver';
-import notifier from 'node-notifier';
-import path from 'path';
-import got from 'got';
-import Fuse from 'fuse.js';
+const Conf = require('conf');
+const CacheConf = require('cache-conf');
+const moment = require('moment');
+const semver = require('semver');
+const notifier = require('node-notifier');
+const path = require('path');
+const got = require('got');
+const Fuse = require('fuse.js');
 
-import updater from './updater';
+const updater = require('./updater');
 
 /**
  * Hugo
@@ -118,6 +117,14 @@ class Hugo {
             return process.argv[3] || '';
         }
         return process.argv[2] || '';
+    }
+
+    /**
+     * Number of Alfred items in the current output buffer
+     * @return {number}
+     */
+    get itemCount(): number {
+        return this.outputBuffer.items.length || 0;
     }
 
     /**

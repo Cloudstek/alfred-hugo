@@ -1,11 +1,10 @@
 // @flow
-'use strict';
 
-import CacheConf from 'cache-conf';
-import moment from 'moment';
-import readPkg from 'read-pkg';
-import latestVersion from 'latest-version';
-import got from 'got';
+const CacheConf = require('cache-conf');
+const moment = require('moment');
+const readPkg = require('read-pkg');
+const latestVersion = require('latest-version');
+const got = require('got');
 
 /**
  * Hugo Updater
