@@ -1,6 +1,6 @@
 {
   "comments": false,
-  "compact": true,
+  "compact": false,
   "plugins": [
     "transform-class-properties",
     "transform-runtime"
