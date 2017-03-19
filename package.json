@@ -14,14 +14,6 @@
     "build": "gulp build",
     "watch": "gulp watch"
   },
-  "files": [
-    "media/logo-hugo.png",
-    "media/update-action.png"
-    "index.js",
-    "index.js.flow",
-    "updater.js"
-    "updater.js.flow"
-  ],
   "keywords": [
     "alfred",
     "workflow",
@@ -71,6 +63,9 @@
   "engines": {
     "node": ">=4"
   },
+  "os": [
+    "darwin"
+  ],
   "ava": {
     "babel": "inherit",
     "verbose": true,

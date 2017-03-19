@@ -1,45 +1,70 @@
 # ![Hugo](media/logo-hugo.svg)
 
->  Alfred workflow bindings for NodeJS. Inspired by [Alfy](https://github.com/sindresorhus/alfy).
+> Alfred workflow bindings for NodeJS. Inspired by [Alfy](https://github.com/sindresorhus/alfy) and [alfred-workflow-nodejs](https://github.com/giangvo/alfred-workflow-nodejs).
 
-## Highlights
+[![Build Status](https://travis-ci.org/Cloudstek/alfred-hugo.svg?branch=master)](https://travis-ci.org/Cloudstek/alfred-hugo) [![Open Issues](https://img.shields.io/github/issues/Cloudstek/alfred-hugo.svg)](https://github.com/Cloudstek/alfred-hugo/issues)
 
-* Written in [Flow](https://flowtype.org) (typed javascript).
+### Highlights
+
+* Written in [Flow](https://flowtype.org) using [Babel](https://babeljs.io).
 * Fuzzy search/filter your data using [Fuse.js](http://fusejs.io).
-* Fetch JSON from REST API's using [Got](https://github.com/sindresorhus/got).
-* Publish your workflow to NPM.
-* Update notifications (works with both NPM and Packal)
+* Fetch (JSON) from REST API's using [Got](https://github.com/sindresorhus/got).
+* Group multiple actions in one file.
+* Update notifications (for both NPM and Packal workflows).
 
-## Table of contents
+## Index
 
 * [Prerequisites](#prerequisites)
 * [Installing](#installing)
+* [Usage](#usage)
 * [Examples](#examples)
 * [API](#api)
   * [Options](#options)
   * [Properties](#properties)
   * [Methods](#methods)
 * [Publishing your workflow to NPM](#publishing-your-workflow-to-npm)
+* [Workflows using Hugo](#workflows-using-hugo)
+* [Contributing](#contributing)
+* [Authors](#authors)
+  * [Contributors](#contributors)
 * [License](#license)
 
 ## Prerequisites
 
 * NodeJS 4 or higher
-* Alfred 3 with paid powerpack addon
+* Alfred 3 with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
 
 ## Installing
+
+Hugo is available as NPM package and can be installed with `npm`.
 
 ```bash
 $ npm install --save alfred-hugo
 ```
 
-Next, in your project simply require/import Hugo and off you go.
+## Usage
+
+In your project simply require/import Hugo and off you go :sunglasses:
 
 ```javascript
 var Hugo = require('alfred-hugo');
 // or
 import Hugo from 'alfred-hugo';
 ```
+
+When you decide to write your Alfred workflow in [Flow](https://flowtype.org),  you'll benefit from static type checking. Flow will automatically find and use the Flow annotations in the Hugo package and any other packages written in Flow. Please see the [Flow documentation](https://flowtype.org/docs/declarations.html#declaration-files) for more info about declarations.
+
+Example:
+
+```javascript
+// @flow
+var Hugo = require('alfred-hugo');
+
+var myOptions = false;
+Hugo.options(myOptions); // Will cause an error as Hugo.options expects an Object
+```
+
+​If you feel like writing your code in plain Javascript … that's fine too :smile: You can still use all the wonderful features of Hugo.
 
 ## Examples
 
@@ -247,6 +272,18 @@ Hugo.input contains the user input (first argument to the script) and can be use
 
 Even if you use this inside an `action` method, it will still return the correct user input, though I recommend using the provided query argument as can be seen in the [examples](#multiple-actions-in-one-file).
 
+#### Hugo.itemCount
+
+Type: `number`
+
+Number of Alfred items in the current output buffer.
+
+#### Hugo.outputBuffer
+
+Type: `Object`
+
+Current output buffer (read-only).
+
 #### Hugo.workflowMeta
 
 Type: `Object`
@@ -355,7 +392,7 @@ Callback to execute when the keyword matches the first argument. The callback ta
 
 #### Hugo.checkUpdates()
 
-Checks for workflow package updates on either NPM or Packal. No need to call this method manually, updates will be checked automagically.
+Checks for workflow package updates on either NPM or Packal when enabled. No need to call this method manually, updates will be checked automagically :sparkles:
 
 #### Hugo.filterItems(query, options)
 
@@ -447,7 +484,7 @@ Number of seconds to cache the result.
 
 ## Publishing your workflow to NPM
 
-To publish your workflow to NPM instead of Packal, use [alfred-link](github.com/samverschueren/alfred-link).
+To publish your workflow to NPM, use [alfred-link](github.com/samverschueren/alfred-link).
 
 > Add the `alfred-link` command as `postinstall` script of your Alfred package and add `alfred-unlink` as `preuninstall` script to clean up the resources when the workflow gets uninstalled.
 
@@ -464,10 +501,29 @@ To publish your workflow to NPM instead of Packal, use [alfred-link](github.com/
 > You can now install the `alfred-unicorn` package like this
 
 ```
-$ npm install -g alfred-unicorn.
+$ npm install -g alfred-unicorn
 ```
 
 > This will update `info.plist` with the information from `package.json` and creates a `unicorn` symlink inside the Alfred workflows directory that points to the location of the `alfred-unicorn` module.
+
+## Workflows using Hugo
+
+List of Alfred workflows using Hugo. 
+
+* [alfred-atom](https://github.com/Cloudstek/alfred-atom) - Alfred workflow to browse and open Atom projects
+
+*Feel free to submit your own by opening an [issue](https://github.com/Cloudstek/alfred-hugo/issues) or submitting a [pull request](https://github.com/Cloudstek/alfred-hugo/pulls).*
+
+## Contributing
+
+See [CONTRIBUTING](CONTRIBUTING.md) for more info about how to contribute.
+
+## Authors
+
+* [Maarten de Boer](https://github.com/mdeboer)
+
+### Contributors 
+* [Marjolein Regterschot](https://github.com/rmarjolein) (Artwork)
 
 ## License
 
