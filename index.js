@@ -26,14 +26,18 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Conf = require('conf');
 var CacheConf = require('cache-conf');
+var Conf = require('conf');
+var crypto = require('crypto');
+var del = require('del');
+var fs = require('fs');
+var Fuse = require('fuse.js');
+var got = require('got');
+var mkdirp = require('mkdirp');
 var moment = require('moment');
-var semver = require('semver');
 var notifier = require('node-notifier');
 var path = require('path');
-var got = require('got');
-var Fuse = require('fuse.js');
+var semver = require('semver');
 
 var updater = require('./updater');
 
@@ -47,6 +51,7 @@ var Hugo = function () {
         };
 
         this._options = {
+            useTmpCache: true,
             checkUpdates: true,
             updateSource: 'packal',
             updateInterval: moment.duration(1, 'days'),
@@ -68,6 +73,16 @@ var Hugo = function () {
     }
 
     (0, _createClass3.default)(Hugo, [{
+        key: '_fileExists',
+        value: function _fileExists(path) {
+            try {
+                fs.statSync(path);
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+    }, {
         key: 'addItem',
         value: function addItem(item) {
             if (!this._outputBuffer.items) {
@@ -150,6 +165,38 @@ var Hugo = function () {
             return this;
         }
     }, {
+        key: 'cacheFile',
+        value: function cacheFile(filepath, cacheName, callback) {
+            if (this._fileExists(filepath)) {
+                var _file = fs.readFileSync(filepath, 'utf8');
+
+                var _hash = crypto.createHash('sha1').update(_file, 'utf8').digest('hex');
+
+                if (!this.workflowMeta.cache) {
+                    return callback(_file, _hash);
+                }
+
+                var cachePath = path.join(this.workflowMeta.cache, cacheName, _hash);
+
+                if (this._fileExists(cachePath)) {
+                    return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+                }
+
+                if (!this._fileExists(path.dirname(cachePath))) {
+                    mkdirp.sync(path.dirname(cachePath));
+                }
+
+                var value = callback(_file, _hash);
+
+                if (value) {
+                    fs.writeFileSync(cachePath, (0, _stringify2.default)(value));
+                    return value;
+                }
+            }
+
+            return null;
+        }
+    }, {
         key: 'checkUpdates',
         value: function () {
             var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
@@ -218,6 +265,35 @@ var Hugo = function () {
             return checkUpdates;
         }()
     }, {
+        key: 'clearCache',
+        value: function () {
+            var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+                return _regenerator2.default.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                if (!this.workflowMeta.cache) {
+                                    _context2.next = 2;
+                                    break;
+                                }
+
+                                return _context2.abrupt('return', del(path.join(this.workflowMeta.cache, '*')));
+
+                            case 2:
+                            case 'end':
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function clearCache() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return clearCache;
+        }()
+    }, {
         key: 'filterItems',
         value: function filterItems(query) {
             var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -243,6 +319,14 @@ var Hugo = function () {
                 } else {
                     _options.updateInterval = moment.duration(_options.updateInterval, 'seconds') || moment.duration(1, 'days');
                 }
+            }
+
+            if ('useTmpCache' in _options && _options.useTmpCache !== this._options.useTmpCache) {
+                this.cache = new CacheConf({
+                    configName: 'cache',
+                    cwd: this.workflowMeta.cache,
+                    version: this.workflowMeta.version
+                });
             }
 
             this._options = (0, _assign2.default)({}, this._options, _options);
@@ -278,22 +362,22 @@ var Hugo = function () {
     }, {
         key: 'feedback',
         value: function () {
-            var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2() {
+            var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
                 var output;
-                return _regenerator2.default.wrap(function _callee2$(_context2) {
+                return _regenerator2.default.wrap(function _callee3$(_context3) {
                     while (1) {
-                        switch (_context2.prev = _context2.next) {
+                        switch (_context3.prev = _context3.next) {
                             case 0:
                                 if (this._rerun) {
                                     this._outputBuffer.rerun = this._rerun;
                                 }
 
                                 if (!(this._options.checkUpdates === true)) {
-                                    _context2.next = 4;
+                                    _context3.next = 4;
                                     break;
                                 }
 
-                                _context2.next = 4;
+                                _context3.next = 4;
                                 return this.checkUpdates().catch(function () {});
 
                             case 4:
@@ -303,18 +387,18 @@ var Hugo = function () {
 
                                 this._outputBuffer = {};
 
-                                return _context2.abrupt('return', output);
+                                return _context3.abrupt('return', output);
 
                             case 8:
                             case 'end':
-                                return _context2.stop();
+                                return _context3.stop();
                         }
                     }
-                }, _callee2, this);
+                }, _callee3, this);
             }));
 
             function feedback() {
-                return _ref2.apply(this, arguments);
+                return _ref3.apply(this, arguments);
             }
 
             return feedback;
@@ -322,36 +406,36 @@ var Hugo = function () {
     }, {
         key: 'fetch',
         value: function () {
-            var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(url) {
+            var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(url) {
                 var _this3 = this;
 
                 var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                 var cacheAge = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
                 var cacheResult;
-                return _regenerator2.default.wrap(function _callee3$(_context3) {
+                return _regenerator2.default.wrap(function _callee4$(_context4) {
                     while (1) {
-                        switch (_context3.prev = _context3.next) {
+                        switch (_context4.prev = _context4.next) {
                             case 0:
                                 options = (0, _assign2.default)({}, {
                                     json: true
                                 }, options);
 
                                 if (!(cacheAge && cacheAge > 0)) {
-                                    _context3.next = 5;
+                                    _context4.next = 5;
                                     break;
                                 }
 
                                 cacheResult = this.cache.get(url);
 
                                 if (!cacheResult) {
-                                    _context3.next = 5;
+                                    _context4.next = 5;
                                     break;
                                 }
 
-                                return _context3.abrupt('return', cacheResult);
+                                return _context4.abrupt('return', cacheResult);
 
                             case 5:
-                                return _context3.abrupt('return', got(url, options).then(function (response) {
+                                return _context4.abrupt('return', got(url, options).then(function (response) {
                                     if (cacheAge && cacheAge > 0) {
                                         _this3.cache.set(url, response.body, {
                                             maxAge: cacheAge * 1000
@@ -363,14 +447,14 @@ var Hugo = function () {
 
                             case 6:
                             case 'end':
-                                return _context3.stop();
+                                return _context4.stop();
                         }
                     }
-                }, _callee3, this);
+                }, _callee4, this);
             }));
 
             function fetch(_x5) {
-                return _ref3.apply(this, arguments);
+                return _ref4.apply(this, arguments);
             }
 
             return fetch;
@@ -410,13 +494,20 @@ var Hugo = function () {
     }, {
         key: 'workflowMeta',
         get: function get() {
+            var cacheDir = process.env.alfred_workflow_cache;
+            var bundleId = process.env.alfred_workflow_bundleid;
+
+            if (bundleId && this._options.useTmpCache === true) {
+                cacheDir = path.join(path.sep, 'tmp', bundleId);
+            }
+
             return {
                 name: process.env.alfred_workflow_name,
                 version: process.env.alfred_workflow_version,
                 uid: process.env.alfred_workflow_uid,
-                bundleId: process.env.alfred_workflow_bundleid,
+                bundleId: bundleId,
                 data: process.env.alfred_workflow_data,
-                cache: process.env.alfred_workflow_cache,
+                cache: cacheDir,
                 icon: path.join(process.cwd(), 'icon.png')
             };
         }

@@ -1,13 +1,17 @@
 // @flow
 
-const Conf = require('conf');
 const CacheConf = require('cache-conf');
+const Conf = require('conf');
+const crypto = require('crypto');
+const del = require('del');
+const fs = require('fs');
+const Fuse = require('fuse.js');
+const got = require('got');
+const mkdirp = require('mkdirp');
 const moment = require('moment');
-const semver = require('semver');
 const notifier = require('node-notifier');
 const path = require('path');
-const got = require('got');
-const Fuse = require('fuse.js');
+const semver = require('semver');
 
 const updater = require('./updater');
 
@@ -68,6 +72,7 @@ class Hugo {
 
         // Save options
         this._options = {
+            useTmpCache: true,
             checkUpdates: true,
             updateSource: 'packal',
             updateInterval: moment.duration(1, 'days'),
@@ -89,6 +94,20 @@ class Hugo {
             cwd: this.workflowMeta.cache,
             version: this.workflowMeta.version
         });
+    }
+
+    /**
+     * Check if file exists
+     * @param {string} path
+     * @return {boolean}
+     */
+    _fileExists(path: string): boolean {
+        try {
+            fs.statSync(path);
+            return true;
+        } catch (err) {
+            return false;
+        }
     }
 
     /**
@@ -141,13 +160,20 @@ class Hugo {
      * @return {Object}
      */
     get workflowMeta(): Object {
+        let cacheDir = process.env.alfred_workflow_cache;
+        let bundleId = process.env.alfred_workflow_bundleid;
+
+        if (bundleId && this._options.useTmpCache === true) {
+            cacheDir = path.join(path.sep, 'tmp', bundleId);
+        }
+
         return {
             name: process.env.alfred_workflow_name,
             version: process.env.alfred_workflow_version,
             uid: process.env.alfred_workflow_uid,
-            bundleId: process.env.alfred_workflow_bundleid,
+            bundleId: bundleId,
             data: process.env.alfred_workflow_data,
-            cache: process.env.alfred_workflow_cache,
+            cache: cacheDir,
             icon: path.join(process.cwd(), 'icon.png')
         };
     }
@@ -260,8 +286,58 @@ class Hugo {
     }
 
     /**
+     * Cache processed data
+     *
+     * Call the callback when a file is not cached or has been modified and store the return value in the cache. This
+     * allows you to read and process the data once, then storing it in cache by returning a value.
+     *
+     * @param {string} filepath File path
+     * @param {string} cacheName Cache name (must be unique for each file)
+     * @param {Function} callback Function to process data
+     * @return {Object|null}
+     */
+    cacheFile(filepath: string, cacheName: string, callback: (file: string, hash: string) => Object|Array<Object>|null): ?Object|Array<Object>|null {
+        if (this._fileExists(filepath)) {
+            let file = fs.readFileSync(filepath, 'utf8');
+
+            // Calculate file hash
+            let hash = crypto.createHash('sha1').update(file, 'utf8').digest('hex');
+
+            // Always call callback when cache dir is not set
+            if (!this.workflowMeta.cache) {
+                return callback(file, hash);
+            }
+
+            // Get cache path
+            let cachePath = path.join(this.workflowMeta.cache, cacheName, hash);
+
+            // Return cached data if found
+            if (this._fileExists(cachePath)) {
+                return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+            }
+
+            // Create cache directory if it doesn't exist
+            if (!this._fileExists(path.dirname(cachePath))) {
+                mkdirp.sync(path.dirname(cachePath));
+            }
+
+            // Get processed data
+            let value = callback(file, hash);
+
+            // Write cache
+            if (value) {
+                fs.writeFileSync(cachePath, JSON.stringify(value));
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Check for updates and notify the user
      * @async
+     * @return {Promise}
      */
     async checkUpdates() {
         // No need to check if we're not showing anything, duh.
@@ -311,6 +387,17 @@ class Hugo {
     }
 
     /**
+     * Clear cache
+     * @async
+     * @return {Promise}
+     */
+    async clearCache() {
+        if (this.workflowMeta.cache) {
+            return del(path.join(this.workflowMeta.cache, '*'));
+        }
+    }
+
+    /**
      * Filter added items (output buffer) with fuse.js
      * @see http://fusejs.io
      * @param {string} query Search string
@@ -346,6 +433,15 @@ class Hugo {
             } else {
                 options.updateInterval = moment.duration(options.updateInterval, 'seconds') || moment.duration(1, 'days');
             }
+        }
+
+        // Update cache dir
+        if ('useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache) {
+            this.cache = new CacheConf({
+                configName: 'cache',
+                cwd: this.workflowMeta.cache,
+                version: this.workflowMeta.version
+            });
         }
 
         this._options = Object.assign({}, this._options, options);
