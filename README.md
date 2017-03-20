@@ -68,115 +68,7 @@ Hugo.options(myOptions); // Will cause an error as Hugo.options expects an Objec
 
 ## Examples
 
-### Fetching JSON data from a REST API
-
-The following example retrieves a list of comments and lists them in Alfred. The entries are filtered by user input and both the name and email fields are searched for matches.
-
-```javascript
-var Hugo = require('alfred-hugo');
-
-Hugo.fetch('http://jsonplaceholder.typicode.com/comments')
-    .then(body => {
-        let items = Hugo
-            .matches(query, {
-                keys: ['name', 'email']
-            })
-            .map(x => ({
-                title: x.name,
-                subtitle: x.email,
-                arg: x.id
-            }));
-        
-        Hugo.addItems(items);
-        Hugo.feedback();
-    });
-```
-
-In your Alfred script filter:
-```bash
-/usr/local/bin/node index.js "$1"
-```
-
-### Adding and filtering items
-
-A very basic example of adding items and filtering them by user input.
-
-As of Alfred 3 you have the option to let Alfred do the filtering. This runs the script once and then caches and filters the results. It is less flexible as it only filters the output data and only by title but it is FAST! Use it if you don't require fancy filtering options.
-
-```javascript
-var Hugo = require('alfred-hugo');
-
-Hugo.addItems([
-    {
-        title: 'My book about wizards',
-        subtitle: 'It\'s awesome, read it.',
-        arg: 'wizards'
-    },
-    {
-        title: 'My book about unicorns',
-        subtitle: 'Not as great as my book about wizards, but a decent read.'
-        arg: 'unicorns'
-    }
-]);
-
-Hugo.filterItems(Hugo.input);
-
-Hugo.feedback();
-```
-
-In your Alfred script filter:
-```bash
-/usr/local/bin/node index.js "$1"
-```
-
-### Multiple actions in one file
-
-```javascript
-var Hugo = require('alfred-hugo');
-
-Hugo.action('aliens', query => {
-    Hugo.addItems([
-        {
-            title: 'My book about wizards',
-            subtitle: 'It\'s awesome, read it.',
-            arg: 'wizards'
-        },
-        {
-            title: 'My book about unicorns',
-            subtitle: 'Not as great as my book about wizards, but a decent read.'
-            arg: 'unicorns'
-        }
-    ]);
-    
-    Hugo.filterItems(query);
-    Hugo.feedback();
-});
-
-Hugo.action('zombies', query => {
-    Hugo.addItems([
-        {
-            title: 'My book about zombies',
-            subtitle: 'It\'s awesome, read it.',
-            arg: 'rotting flesh'
-        },
-        {
-            title: 'My book about the undead',
-            subtitle: 'Not as great as my book about zombies, but a decent read.'
-            arg: 'undead beings'
-        }
-    ]);
-    
-    Hugo.filterItems(query);
-    Hugo.feedback();
-});
-```
-
-In your Alfred script filter:
-```bash
-/usr/local/bin/node index.js aliens "$1"
-# or
-/usr/local/bin/node index.js zombies "$1"
-```
+Please see the [examples](examples) directory for, well ... examples.
 
 ## API
 
@@ -229,6 +121,14 @@ Display an update item at the bottom of the list when an update is available.
 When the item is activated, it will set a variable named `task` (`{var:task}` in Alfred) with the value `wfUpdate`. The argument is set to the URL where the update can be found, either on Packal or NPM depending on `updateSource`. You can link the output to an [Open URL](https://www.alfredapp.com/help/workflows/actions/open-url/) action so a browser opens when the user selects the update item.
 
 ![Opening a browser for updates](media/update-action.png)
+
+#### useTmpCache
+
+Type: `boolean`
+
+Default: `true`
+
+Use the `/tmp/<workflow bundle id>` directory for your workflow cache when `true`. When `false` it will use the path in the `alfred_workflow_cache` environment variable as cache directory, which is set by Alfred by default. You can override this environment variable if you like to set a custom cache directory.
 
 ### Properties
 
@@ -390,9 +290,31 @@ Callback to execute when the keyword matches the first argument. The callback ta
 /usr/local/bin/node index.js myaction "myquery"
 ```
 
+#### Hugo.cacheFile(filepath, cacheName)
+
+Processing/parsing files often takes time and is only needed when the file has changed. You can cache the results for a period of time, but you'll be left with an outdated cache when the file changes.
+
+This method makes caching the processed results a lot easier by checking whether a file has changed. If it hasn't changed, `get()` will return the cached value. If no cached result is found or the file has changed, the `changed` event will be emitted with a reference to the cache store, file contents and SHA-1 hash so you can process your file and store the results in the cache store.
+
+*\* It's recommended to have the `useTmpCache` option set to `true` to prevent the cache from piling up as it isn't cleaned from time to time, unlike the `/tmp` folder which is cleared after a reboot.*
+
+##### filepath
+
+Type: `string`
+
+Absolute path to the file that you like to process and check for changes.
+
+##### cacheName
+
+Type: `string`
+
+Cache name, this will be the name of the directory where the cached results are stored. It's possible but not recommended to share one cache name with other `cacheFile` instances.
+
+Check out [file-cache.js.flow](file-cache.js.flow) and the [example](examples/file-cache.js) to see how to implement it.
+
 #### Hugo.checkUpdates()
 
-Checks for workflow package updates on either NPM or Packal when enabled. No need to call this method manually, updates will be checked automagically :sparkles:
+Checks for workflow package updates on either NPM or Packal when enabled. No need to call this method manually, updates will be checked automagically ​:sparkles:​
 
 #### Hugo.filterItems(query, options)
 
