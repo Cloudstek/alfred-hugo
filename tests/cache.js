@@ -1,8 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import test from 'ava';
 import del from 'del';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import tempfile from 'tempfile';
+import test from 'ava';
 
 import {hugo} from './_init';
 
@@ -16,7 +17,7 @@ const testData = {
  */
 async function cleanUp() {
     return del([
-        path.join(path.sep, 'tmp', 'my.work.flow'),
+        path.resolve(path.join(os.tmpdir(), 'my.work.flow')),
         process.env.alfred_workflow_cache
     ], {
         force: true
@@ -52,7 +53,9 @@ test.serial('tmp cache dir', t => {
     });
 
     // Check cache path
-    t.is(path.join(path.sep, 'tmp', 'my.work.flow'), h.workflowMeta.cache);
+    t.is(path.resolve(path.join(os.tmpdir(), 'my.work.flow')), h.workflowMeta.cache);
+
+    console.log(path.resolve(path.join(os.tmpdir(), 'my.work.flow')));
 
     // Set and get cache data
     h.cache.set('test', testData);
@@ -105,7 +108,7 @@ test.serial('changing cache dir', t => {
     });
 
     // Check cache again
-    t.is(path.join(path.sep, 'tmp', 'my.work.flow'), h.workflowMeta.cache);
+    t.is(path.resolve(path.join(os.tmpdir(), 'my.work.flow')), h.workflowMeta.cache);
     t.false(h.cache.has('test'));
 });
 

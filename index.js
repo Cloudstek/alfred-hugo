@@ -33,6 +33,7 @@ var Fuse = require('fuse.js');
 var got = require('got');
 var moment = require('moment');
 var notifier = require('node-notifier');
+var os = require('os');
 var path = require('path');
 var semver = require('semver');
 
@@ -463,7 +464,7 @@ var Hugo = function () {
             var bundleId = process.env.alfred_workflow_bundleid;
 
             if (bundleId && this._options.useTmpCache === true) {
-                cacheDir = path.join(path.sep, 'tmp', bundleId);
+                cacheDir = path.resolve(path.join(os.tmpdir(), bundleId));
             }
 
             return {

@@ -7,6 +7,7 @@ const Fuse = require('fuse.js');
 const got = require('got');
 const moment = require('moment');
 const notifier = require('node-notifier');
+const os = require('os');
 const path = require('path');
 const semver = require('semver');
 
@@ -152,7 +153,7 @@ class Hugo {
         let bundleId = process.env.alfred_workflow_bundleid;
 
         if (bundleId && this._options.useTmpCache === true) {
-            cacheDir = path.join(path.sep, 'tmp', bundleId);
+            cacheDir = path.resolve(path.join(os.tmpdir(), bundleId));
         }
 
         return {
