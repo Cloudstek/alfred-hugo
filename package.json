@@ -65,9 +65,6 @@
   "engines": {
     "node": ">=4"
   },
-  "os": [
-    "darwin"
-  ],
   "ava": {
     "babel": "inherit",
     "verbose": true,
