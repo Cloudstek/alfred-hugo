@@ -1,4 +1,4 @@
-# ![Hugo](media/logo-hugo.svg)
+# ![Hugo](https://cdn.rawgit.com/cloudstek/alfred-hugo/master/media/logo-hugo.svg)
 
 > Alfred workflow bindings for NodeJS. Inspired by [Alfy](https://github.com/sindresorhus/alfy) and [alfred-workflow-nodejs](https://github.com/giangvo/alfred-workflow-nodejs).
 
