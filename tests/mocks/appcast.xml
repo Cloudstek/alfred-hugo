@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<workflow>
+  <name>My Workflow</name>
+  <version>2.1.0</version>
+  <bundle>my.work.flow</bundle>
+  <updated>1486081099</updated>
+  <file>myworkflow.alfredworkflow</file>
+  <signature></signature>
+</workflow>

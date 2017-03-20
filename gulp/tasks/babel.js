@@ -1,0 +1,19 @@
+'use strict';
+const fs = require('fs');
+const gulp = require('gulp');
+const babel = require('gulp-babel');
+const rename = require('gulp-rename');
+
+let task = () => {
+    let babelrc = JSON.parse(fs.readFileSync('.babelrc') || '{}');
+
+    return gulp.src(['./**/*.js.flow', '!node_modules', '!node_modules/**'])
+        .pipe(babel(babelrc))
+        .pipe(rename(path => {
+            // Fix file extension for double ext files (.js.flow)
+            path.extname = path.basename.endsWith('.js') ? '' : '.js';
+        }))
+        .pipe(gulp.dest('.'));
+};
+
+module.exports = [['eslint'], task];

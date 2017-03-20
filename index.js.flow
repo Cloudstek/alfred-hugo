@@ -1,0 +1,506 @@
+// @flow
+
+const CacheConf = require('cache-conf');
+const Conf = require('conf');
+const del = require('del');
+const Fuse = require('fuse.js');
+const got = require('got');
+const moment = require('moment');
+const notifier = require('node-notifier');
+const os = require('os');
+const path = require('path');
+const semver = require('semver');
+
+const FileCache = require('./file-cache');
+const updater = require('./updater');
+
+/**
+ * Hugo
+ */
+class Hugo {
+    /**
+     * FuseJS defaults
+     * @see https://github.com/krisk/fuse#options
+     * @type {Object}
+     */
+    _fuseDefaults: Object;
+
+    /**
+     * Hugo options
+     * @type {Object}
+     */
+    _options: Object;
+
+    /**
+     * Output buffer
+     * @type {Object}
+     */
+    _outputBuffer: Object;
+
+    /**
+     * Refresh (rerun) interval in seconds
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @type {number|null}
+     */
+    _rerun: ?number;
+
+    /**
+     * Cache store
+     * @see https://www.npmjs.com/package/cache-conf
+     * @type {CacheConf}
+     */
+    cache: CacheConf;
+
+    /**
+     * Configuration store
+     * @see https://www.npmjs.com/package/conf
+     * @type {Conf}
+     */
+    config: Conf;
+
+    /**
+     * Hugo constructor
+     * @constructor
+     */
+    constructor() {
+        // Set defaults for FuseJS
+        this._fuseDefaults = {
+            keys: ['title'],
+            threshold: 0.4
+        };
+
+        // Save options
+        this._options = {
+            useTmpCache: true,
+            checkUpdates: true,
+            updateSource: 'packal',
+            updateInterval: moment.duration(1, 'days'),
+            updateNotification: true,
+            updateItem: true
+        };
+
+        // Initialize output buffer
+        this._outputBuffer = {};
+
+        // Configure config store
+        this.config = new Conf({
+            cwd: this.workflowMeta.data
+        });
+
+        // Configure cache store
+        this.cache = new CacheConf({
+            configName: 'cache',
+            cwd: this.workflowMeta.cache,
+            version: this.workflowMeta.version
+        });
+    }
+
+    /**
+     * Alfred metadata
+     * @return {Object}
+     */
+    get alfredMeta(): Object {
+        return {
+            version: process.env.alfred_version,
+            theme: process.env.alfred_theme,
+            themeBackground: process.env.alfred_theme_background,
+            themeSelectionBackground: process.env.alfred_theme_selection_background,
+            themeSubtext: parseFloat(process.env.alfred_theme_subtext),
+            preferences: process.env.alfred_preferences,
+            preferencesLocalHash: process.env.alfred_preferences_localhash,
+            debug: process.env.alfred_debug === '1'
+        };
+    }
+
+    /**
+     * Alfred user input
+     * @return {string}
+     */
+    get input(): string {
+        if (process.argv.length > 3) {
+            return process.argv[3] || '';
+        }
+        return process.argv[2] || '';
+    }
+
+    /**
+     * Number of Alfred items in the current output buffer
+     * @return {number}
+     */
+    get itemCount(): number {
+        if (this.outputBuffer && this.outputBuffer.items) {
+            return this.outputBuffer.items.length;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Current output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @return {Object} Object to be output and interpreted by Alfred
+     */
+    get outputBuffer(): Object {
+        return this._outputBuffer;
+    }
+
+    /**
+     * Workflow metadata
+     * @return {Object}
+     */
+    get workflowMeta(): Object {
+        let cacheDir = process.env.alfred_workflow_cache;
+        let bundleId = process.env.alfred_workflow_bundleid;
+
+        if (bundleId && this._options.useTmpCache === true) {
+            cacheDir = path.resolve(path.join(os.tmpdir(), bundleId));
+        }
+
+        return {
+            name: process.env.alfred_workflow_name,
+            version: process.env.alfred_workflow_version,
+            uid: process.env.alfred_workflow_uid,
+            bundleId: bundleId,
+            data: process.env.alfred_workflow_data,
+            cache: cacheDir,
+            icon: path.join(process.cwd(), 'icon.png')
+        };
+    }
+
+    /**
+     * Add item to output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @param {Object} item Item to add
+     * @type {Hugo}
+     */
+    addItem(item: Object): Hugo {
+        if (!this._outputBuffer.items) {
+            this._outputBuffer.items = [];
+        }
+
+        if (!item.title) {
+            if (this.alfredMeta.debug === true) {
+                console.error('Item skipped, missing title.');
+            }
+            return this;
+        }
+
+        if (item.arg && typeof item.arg === 'object') {
+            let arg = item.arg.arg || '';
+            let variables = item.arg.variables || {};
+
+            item.arg = JSON.stringify({
+                alfredworkflow: {
+                    arg: arg,
+                    variables: variables
+                }
+            });
+        }
+
+        this._outputBuffer.items.push(item);
+
+        return this;
+    }
+
+    /**
+     * Add items to output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @param {Array.<Object>} items List of items to add
+     * @type {Hugo}
+     */
+    addItems(items: Array<Object>): Hugo {
+        if (!this._outputBuffer.items) {
+            this._outputBuffer.items = items;
+            return this;
+        }
+
+        items.map(item => {
+            this.addItem(item);
+            return item;
+        });
+
+        return this;
+    }
+
+    /**
+     * Add session variable to output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @param {string} key Variable key
+     * @param {string} value Variable value
+     * @type {Hugo}
+     */
+    addVariable(key: string, value: string): Hugo {
+        if (!this._outputBuffer.variables) {
+            this._outputBuffer.variables = {};
+        }
+
+        this._outputBuffer.variables[key] = value;
+
+        return this;
+    }
+
+    /**
+     * Add session variables to output buffer
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json/
+     * @param {Object} variables List of variables to add
+     * @type {Hugo}
+     */
+    addVariables(variables: Object): Hugo {
+        if (!this._outputBuffer.variables) {
+            this._outputBuffer.variables = variables;
+            return this;
+        }
+
+        this._outputBuffer.variables = Object.assign({}, this._outputBuffer.variables, variables);
+
+        return this;
+    }
+
+    /**
+     * Run a callback when first script argument matches keyword. Callback will have third argument as query parameter.
+     * @example node index.js myaction "my query"
+     * @param {string} keyword Action name
+     * @param {Function} callback Callback to execute when query matches action name
+     * @type {Hugo}
+     */
+    action(keyword: string, callback: (query: string) => void): Hugo {
+        let query: string = process.argv[2];
+
+        if (query && callback && query === keyword) {
+            query = process.argv[3] || '';
+            callback(query);
+        }
+
+        return this;
+    }
+
+    /**
+     * Cache processed data
+     * This allows you to read and process the data once, then storing it in cache until the file has changed again.
+     *
+     * @param {string} filepath File path
+     * @param {string} cacheName Cache name (must be unique for each file)
+     * @return {FileCache}
+     */
+    cacheFile(filePath: string, cacheName: string): FileCache {
+        return new FileCache(filePath, cacheName, this.workflowMeta.cache);
+    }
+
+    /**
+     * Check for updates and notify the user
+     * @async
+     * @return {Promise}
+     */
+    async checkUpdates() {
+        // No need to check if we're not showing anything, duh.
+        if (this._options.checkUpdates !== true ||
+                (this._options.updateItem !== true && this._options.updateNotification !== true)) {
+            return;
+        }
+
+        await updater.checkUpdates(this._options.updateSource, this._options.updateInterval)
+            .catch(err => {
+                console.error(err);
+            })
+            .then(result => {
+                if (!result) {
+                    return;
+                }
+
+                // Version information
+                let current: string = this.workflowMeta.version;
+                let latest: string = result.version;
+
+                // Display notification
+                if (semver.gt(latest, current)) {
+                    if (result.checkedOnline === true && this._options.updateNotification === true) {
+                        notifier.notify({
+                            title: this.workflowMeta.name || 'Alfred',
+                            subtitle: `Workflow version ${latest} available. Current version: ${current}.`,
+                            sender: 'com.runningwithcrayons.Alfred-3',
+                            timeout: 10
+                        });
+                    }
+                    if (this._options.updateItem === true) {
+                        this.addItem({
+                            title: `Workflow update available!`,
+                            subtitle: `Version ${latest} is available. Current version: ${current}.`,
+                            icon: this.workflowMeta.icon,
+                            arg: {
+                                arg: result.url,
+                                variables: {
+                                    task: 'wfUpdate'
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+    }
+
+    /**
+     * Clear cache
+     * @async
+     * @return {Promise}
+     */
+    async clearCache() {
+        if (this.workflowMeta.cache) {
+            return del(path.join(this.workflowMeta.cache, '*'));
+        }
+    }
+
+    /**
+     * Filter added items (output buffer) with fuse.js
+     * @see http://fusejs.io
+     * @param {string} query Search string
+     * @param {Object} options fuse.js options
+     * @return {Hugo}
+     */
+    filterItems(query: string, options: Object = {}): Hugo {
+        options = Object.assign({}, this._fuseDefaults, options);
+
+        if (query.length === 0) {
+            return this;
+        }
+
+        // Create fuse.js fuzzy search object
+        let fuse = new Fuse(this._outputBuffer.items, options);
+
+        // Set output buffer to matching items
+        this._outputBuffer.items = fuse.search(query) || [];
+
+        return this;
+    }
+
+    /**
+     * Set Hugo options
+     * @param {Object} options Options to set
+     * @return {Hugo}
+     */
+    options(options: Object): Hugo {
+        // Convert updateInterval to moment.Duration object
+        if (options.updateInterval && !moment.isDuration(options.updateInterval)) {
+            if (options.updateInterval < 1) {
+                delete options.updateInterval;
+            } else {
+                options.updateInterval = moment.duration(options.updateInterval, 'seconds') || moment.duration(1, 'days');
+            }
+        }
+
+        // Update cache dir
+        if ('useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache) {
+            this.cache = new CacheConf({
+                configName: 'cache',
+                cwd: this.workflowMeta.cache,
+                version: this.workflowMeta.version
+            });
+        }
+
+        this._options = Object.assign({}, this._options, options);
+
+        return this;
+    }
+
+    /**
+     * Filter list of candidates with fuse.js
+     * @see http://fusejs.io
+     * @param {Array.<Object>} candidates Input data
+     * @param {string} query Search string
+     * @param {Object} options fuse.js options
+     * @return {Array.<Object>}
+     */
+    matches(candidates: Array<Object>, query: string, options: Object = {}): Array<Object> {
+        options = Object.assign({}, this._fuseDefaults, options);
+
+        if (query.length === 0) {
+            return candidates;
+        }
+
+        // Create fuse.js fuzzy search object
+        let fuse = new Fuse(candidates, options);
+
+        // Return results
+        return fuse.search(query) || [];
+    }
+
+    /**
+     * Set rerun parameter
+     * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
+     * @param {number} value Interval to rerun the script when idle
+     * @return {Hugo}
+     */
+    rerun(value: number): Hugo {
+        value = parseFloat(value);
+
+        if (value && value > 0.1 && value <= 5) {
+            this._rerun = value;
+        }
+
+        return this;
+    }
+
+    /**
+     * Flush the output buffer so Alfred shows our items
+     * @async
+     */
+    async feedback() {
+        if (this._rerun) {
+            this._outputBuffer.rerun = this._rerun;
+        }
+
+        // Check for updates
+        if (this._options.checkUpdates === true) {
+            await this.checkUpdates()
+                .catch(() => {});
+        }
+
+        let output = this._outputBuffer;
+
+        // Output JSON
+        console.log(JSON.stringify(output, null, '\t'));
+
+        // Reset output buffer
+        this._outputBuffer = {};
+
+        return output;
+    }
+
+    /**
+     * Fetch url and parse JSON. Useful for REST APIs.
+     * @see https://www.npmjs.com/package/got
+     * @param {string} url Url to request
+     * @param {Object} options http.request options
+     * @param {number|null} cacheAge Cache lifetime (in seconds), above 0 to enable or null to disable.
+     * @return {Object|string}
+     * @async
+     */
+    async fetch(url: string, options: Object = {}, cacheAge: ?number = null): Object|string {
+        // Set default options
+        options = Object.assign({}, {
+            json: true
+        }, options);
+
+        // Check cache for a hit
+        if (cacheAge && cacheAge > 0) {
+            let cacheResult: ?Object|?string = this.cache.get(url);
+
+            if (cacheResult) {
+                return cacheResult;
+            }
+        }
+
+        // Do request
+        return got(url, options)
+            .then(response => {
+                if (cacheAge && cacheAge > 0) {
+                    this.cache.set(url, response.body, {
+                        maxAge: cacheAge * 1000
+                    });
+                }
+
+                return response.body;
+            });
+    }
+}
+
+module.exports = new Hugo();
