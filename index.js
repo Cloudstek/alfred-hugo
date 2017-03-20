@@ -28,17 +28,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var CacheConf = require('cache-conf');
 var Conf = require('conf');
-var crypto = require('crypto');
 var del = require('del');
-var fs = require('fs');
 var Fuse = require('fuse.js');
 var got = require('got');
-var mkdirp = require('mkdirp');
 var moment = require('moment');
 var notifier = require('node-notifier');
 var path = require('path');
 var semver = require('semver');
 
+var FileCache = require('./file-cache');
 var updater = require('./updater');
 
 var Hugo = function () {
@@ -73,16 +71,6 @@ var Hugo = function () {
     }
 
     (0, _createClass3.default)(Hugo, [{
-        key: '_fileExists',
-        value: function _fileExists(path) {
-            try {
-                fs.statSync(path);
-                return true;
-            } catch (err) {
-                return false;
-            }
-        }
-    }, {
         key: 'addItem',
         value: function addItem(item) {
             if (!this._outputBuffer.items) {
@@ -166,35 +154,8 @@ var Hugo = function () {
         }
     }, {
         key: 'cacheFile',
-        value: function cacheFile(filepath, cacheName, callback) {
-            if (this._fileExists(filepath)) {
-                var _file = fs.readFileSync(filepath, 'utf8');
-
-                var _hash = crypto.createHash('sha1').update(_file, 'utf8').digest('hex');
-
-                if (!this.workflowMeta.cache) {
-                    return callback(_file, _hash);
-                }
-
-                var cachePath = path.join(this.workflowMeta.cache, cacheName, _hash);
-
-                if (this._fileExists(cachePath)) {
-                    return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-                }
-
-                if (!this._fileExists(path.dirname(cachePath))) {
-                    mkdirp.sync(path.dirname(cachePath));
-                }
-
-                var value = callback(_file, _hash);
-
-                if (value) {
-                    fs.writeFileSync(cachePath, (0, _stringify2.default)(value));
-                    return value;
-                }
-            }
-
-            return null;
+        value: function cacheFile(filePath, cacheName) {
+            return new FileCache(filePath, cacheName, this.workflowMeta.cache);
         }
     }, {
         key: 'checkUpdates',

@@ -1,0 +1,142 @@
+// @flow
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const mkdirp = require('mkdirp');
+const EventEmitter = require('events').EventEmitter;
+
+/**
+ * FileCache
+ * Simple in-memory key/value pair storage to store event listener results
+ */
+class FileCacheStore {
+    /**
+     * Cache contents
+     * @type {Object|Array.<Object>}
+     */
+    _contents: Object|Array<Object>;
+
+    /**
+     * FileCacheStore constructor
+     * @constructor
+     */
+    constructor() {
+        this._contents = {};
+    }
+
+    /**
+     * Get cache contents
+     * @return {Object|Array.<Object>}
+     */
+    get contents() {
+        return this._contents;
+    }
+
+    /**
+     * Set cache contents to value
+     * @param {Object|Arrray.<Object>} value
+     * @return {FileCacheStore}
+     */
+    store(value: Object|Array<Object>): FileCacheStore {
+        this._contents = value;
+        return this;
+    }
+
+    /**
+     * Set a cache value
+     * @param {any} key Key
+     * @param {any} value Value
+     * @return {FileCacheStore}
+     */
+    set(key: any, value: any): FileCacheStore {
+        this._contents[key] = value;
+        return this;
+    }
+}
+
+/**
+ * FileCache
+ */
+class FileCache extends EventEmitter {
+    filePath: string;
+    cacheName: string;
+    cacheDir: string;
+
+    /**
+     * FileCache constructor
+     * @param {string} filePath File to process and check for changes
+     * @param {string} cacheName Unique name for cache directory
+     * @param {string} cacheDir Cache base directory
+     * @constructor
+     */
+    constructor(filePath: string, cacheName: string, cacheDir: string) {
+        super();
+
+        this.filePath = filePath;
+        this.cacheName = cacheName;
+        this.cacheDir = cacheDir;
+    }
+
+    /**
+     * Check if file exists
+     * @param {string} path
+     * @return {boolean}
+     */
+    _fileExists(path: string): boolean {
+        try {
+            fs.statSync(path);
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
+     * Get cached contents
+     * @return {Object|Array.<Object>|null}
+     */
+    get(): Object|Array<Object>|null {
+        if (this._fileExists(this.filePath)) {
+            // Create simple in-memory store for event listener results
+            let eventResult = new FileCacheStore();
+
+            // Read file
+            let file = fs.readFileSync(this.filePath, 'utf8');
+
+            // Calculate file hash
+            let hash = crypto.createHash('sha1').update(file, 'utf8').digest('hex');
+
+            // Always call callback when cache dir is not set
+            if (!this.cacheDir) {
+                console.log('No cache dir set');
+                this.emit('changed', eventResult, file, hash);
+                return eventResult.contents;
+            }
+
+            // Get cache path
+            let cachePath = path.join(this.cacheDir, this.cacheName, hash);
+
+            // Return cached data if found
+            if (this._fileExists(cachePath)) {
+                return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+            }
+
+            // Create cache directory if it doesn't exist
+            if (!this._fileExists(path.dirname(cachePath))) {
+                mkdirp.sync(path.dirname(cachePath));
+            }
+
+            // Get processed data
+            this.emit('changed', eventResult, file, hash);
+
+            // Write cache
+            fs.writeFileSync(cachePath, JSON.stringify(eventResult.contents));
+            return eventResult.contents;
+        }
+
+        return null;
+    }
+}
+
+module.exports = FileCache;

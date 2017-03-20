@@ -41,7 +41,7 @@ test.beforeEach(async t => {
 /**
  * Check tmp cache directory
  */
-test('tmp cache dir', t => {
+test.serial('tmp cache dir', t => {
     const h = t.context.hugo;
 
     t.plan(2);
@@ -56,13 +56,13 @@ test('tmp cache dir', t => {
 
     // Set and get cache data
     h.cache.set('test', testData);
-    t.deepEqual(testData, h.cache.get('test'));
+    t.deepEqual(h.cache.get('test'), testData);
 });
 
 /**
  * Check standard cache directory
  */
-test('standard cache dir', t => {
+test.serial('standard cache dir', t => {
     const h = t.context.hugo;
 
     t.plan(2);
@@ -77,13 +77,13 @@ test('standard cache dir', t => {
 
     // Set and get cache data
     h.cache.set('test', testData);
-    t.deepEqual(testData, h.cache.get('test'));
+    t.deepEqual(h.cache.get('test'), testData);
 });
 
 /**
  * Check cache instance is reinitialized on cache dir change
  */
-test('changing cache dir', t => {
+test.serial('changing cache dir', t => {
     const h = t.context.hugo;
 
     t.plan(3);
@@ -110,51 +110,79 @@ test('changing cache dir', t => {
 });
 
 /**
- * Check file cache
+ * Process file and store results in file cache
  */
-test('file cache', t => {
+test.serial('process file and cache it', t => {
     const h = t.context.hugo;
-    const file = tempfile();
+    const tmpFile = tempfile();
 
-    t.plan(5);
+    t.plan(6);
 
-    fs.writeFileSync(file, 'Hello world!');
+    // Create file
+    fs.writeFileSync(tmpFile, 'Hello world!');
 
-    // Fetch data (uncached)
-    let data = h.cacheFile(file, 'foo', file => {
-        t.is('Hello world!', file);
+    // Get FileCache instance
+    let cachedFile = h.cacheFile(tmpFile, 'foo');
 
-        return testData;
+    // Listen to changed event to process data
+    cachedFile.on('changed', (cache, file, hash) => {
+        t.is(cache.constructor.name, 'FileCacheStore');
+        t.is(typeof file, 'string');
+        t.true(file.length > 0);
+        t.is(typeof hash, 'string');
+        t.true(file.length > 0);
+
+        cache.store({
+            hello: 'world!'
+        });
     });
 
-    // Verify data
-    t.deepEqual(testData, data);
+    // Fetch data
+    let data = cachedFile.get();
 
-    // Fetch data again (should be cached)
-    data = h.cacheFile(file, 'foo', () => {
+    // Verify data
+    t.deepEqual(data, {
+        hello: 'world!'
+    });
+});
+
+/**
+ * Process file and check if cached when requested the second time
+ */
+test.serial('process file and check if cached', t => {
+    const h = t.context.hugo;
+    const tmpFile = tempfile();
+
+    t.plan(3);
+
+    // Create file
+    fs.writeFileSync(tmpFile, 'Hello world!');
+
+    // Get FileCache instance
+    let cachedFile = h.cacheFile(tmpFile, 'foo');
+
+    // Listen to changed event to process data
+    cachedFile.once('changed', cache => {
+        t.is(cache.constructor.name, 'FileCacheStore');
+        cache.store(testData);
+    });
+
+    // Fetch data (uncached)
+    let data = cachedFile.get();
+
+    // Verify data
+    t.deepEqual(data, testData);
+
+    // Listen to changed event (which should not be emitted now)
+    cachedFile.once('changed', () => {
         t.fail('Data has not been cached.');
     });
 
-    // Verify data
-    t.deepEqual(testData, data);
-
-    // Alter data
-    fs.writeFileSync(file, 'Foo bar!');
-
-    // Fetch data again (should not be cached)
-    data = h.cacheFile(file, 'foo', file => {
-        t.is('Foo bar!', file);
-        return {
-            hello: 'world',
-            foo: 'bar'
-        };
-    });
+    // Fetch data again
+    data = cachedFile.get();
 
     // Verify data
-    t.deepEqual({
-        hello: 'world',
-        foo: 'bar'
-    }, data);
+    t.deepEqual(data, testData);
 });
 
 /**

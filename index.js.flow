@@ -2,17 +2,15 @@
 
 const CacheConf = require('cache-conf');
 const Conf = require('conf');
-const crypto = require('crypto');
 const del = require('del');
-const fs = require('fs');
 const Fuse = require('fuse.js');
 const got = require('got');
-const mkdirp = require('mkdirp');
 const moment = require('moment');
 const notifier = require('node-notifier');
 const path = require('path');
 const semver = require('semver');
 
+const FileCache = require('./file-cache');
 const updater = require('./updater');
 
 /**
@@ -94,20 +92,6 @@ class Hugo {
             cwd: this.workflowMeta.cache,
             version: this.workflowMeta.version
         });
-    }
-
-    /**
-     * Check if file exists
-     * @param {string} path
-     * @return {boolean}
-     */
-    _fileExists(path: string): boolean {
-        try {
-            fs.statSync(path);
-            return true;
-        } catch (err) {
-            return false;
-        }
     }
 
     /**
@@ -287,51 +271,14 @@ class Hugo {
 
     /**
      * Cache processed data
-     *
-     * Call the callback when a file is not cached or has been modified and store the return value in the cache. This
-     * allows you to read and process the data once, then storing it in cache by returning a value.
+     * This allows you to read and process the data once, then storing it in cache until the file has changed again.
      *
      * @param {string} filepath File path
      * @param {string} cacheName Cache name (must be unique for each file)
-     * @param {Function} callback Function to process data
-     * @return {Object|null}
+     * @return {FileCache}
      */
-    cacheFile(filepath: string, cacheName: string, callback: (file: string, hash: string) => Object|Array<Object>|null): ?Object|Array<Object>|null {
-        if (this._fileExists(filepath)) {
-            let file = fs.readFileSync(filepath, 'utf8');
-
-            // Calculate file hash
-            let hash = crypto.createHash('sha1').update(file, 'utf8').digest('hex');
-
-            // Always call callback when cache dir is not set
-            if (!this.workflowMeta.cache) {
-                return callback(file, hash);
-            }
-
-            // Get cache path
-            let cachePath = path.join(this.workflowMeta.cache, cacheName, hash);
-
-            // Return cached data if found
-            if (this._fileExists(cachePath)) {
-                return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-            }
-
-            // Create cache directory if it doesn't exist
-            if (!this._fileExists(path.dirname(cachePath))) {
-                mkdirp.sync(path.dirname(cachePath));
-            }
-
-            // Get processed data
-            let value = callback(file, hash);
-
-            // Write cache
-            if (value) {
-                fs.writeFileSync(cachePath, JSON.stringify(value));
-                return value;
-            }
-        }
-
-        return null;
+    cacheFile(filePath: string, cacheName: string): FileCache {
+        return new FileCache(filePath, cacheName, this.workflowMeta.cache);
     }
 
     /**
