@@ -445,7 +445,11 @@ var Hugo = function () {
     }, {
         key: 'itemCount',
         get: function get() {
-            return this.outputBuffer.items.length || 0;
+            if (this.outputBuffer && this.outputBuffer.items) {
+                return this.outputBuffer.items.length;
+            }
+
+            return 0;
         }
     }, {
         key: 'outputBuffer',

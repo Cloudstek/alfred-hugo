@@ -127,7 +127,11 @@ class Hugo {
      * @return {number}
      */
     get itemCount(): number {
-        return this.outputBuffer.items.length || 0;
+        if (this.outputBuffer && this.outputBuffer.items) {
+            return this.outputBuffer.items.length;
+        }
+
+        return 0;
     }
 
     /**
