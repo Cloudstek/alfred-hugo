@@ -22,6 +22,8 @@ test.beforeEach(t => {
 test('items only', t => {
     const h = t.context;
 
+    t.plan(1);
+
     const unhook = hookStd.stdout(output => {
         unhook();
 
@@ -66,6 +68,8 @@ test('items only', t => {
 test('variables only', t => {
     const h = t.context;
 
+    t.plan(1);
+
     const unhook = hookStd.stdout(output => {
         unhook();
 
@@ -97,6 +101,8 @@ test('variables only', t => {
 test('variables and items combined', t => {
     const h = t.context;
 
+    t.plan(1);
+
     const unhook = hookStd.stdout(output => {
         unhook();
 
@@ -126,6 +132,8 @@ test('variables and items combined', t => {
  */
 test('rerun parameter', t => {
     const h = t.context;
+
+    t.plan(1);
 
     const unhook = hookStd.stdout(output => {
         unhook();
@@ -158,6 +166,8 @@ test('rerun parameter', t => {
  */
 test('invalid rerun parameter', t => {
     const h = t.context;
+
+    t.plan(2);
 
     const unhook = hookStd.stdout(output => {
         unhook();
@@ -195,6 +205,8 @@ test('invalid rerun parameter', t => {
  */
 test('invalid items', t => {
     const h = t.context;
+
+    t.plan(1);
 
     const unhook = hookStd.stdout(output => {
         unhook();

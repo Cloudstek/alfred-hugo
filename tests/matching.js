@@ -17,8 +17,24 @@ const items = [
     }
 ];
 
+/**
+ * Set-up
+ */
+test.beforeEach(t => {
+    const h = hugo();
+
+    h.options({
+        checkUpdates: false
+    });
+
+    t.context.hugo = h;
+});
+
 test('exact match', t => {
     const h = hugo();
+
+    t.plan(4);
+
     let matches = h.matches(items, 'bla@test.org', {
         keys: ['email'],
         threshold: 0
@@ -32,6 +48,8 @@ test('exact match', t => {
 
 test('exact match from output buffer', t => {
     const h = hugo();
+
+    t.plan(5);
 
     // Add items to output buffer
     h.addItems(items);
@@ -52,6 +70,9 @@ test('exact match from output buffer', t => {
 
 test('match multiple keys', t => {
     const h = hugo();
+
+    t.plan(2);
+
     let matches = h.matches(items, 'test', {
         keys: ['email', 'title']
     });
@@ -62,6 +83,8 @@ test('match multiple keys', t => {
 
 test('match multiple keys from output buffer', t => {
     const h = hugo();
+
+    t.plan(3);
 
     // Add items to output buffer
     h.addItems(items);
@@ -79,6 +102,9 @@ test('match multiple keys from output buffer', t => {
 
 test('no match', t => {
     const h = hugo();
+
+    t.plan(2);
+
     let matches = h.matches(items, 'bla@test.it', {
         keys: ['email'],
         threshold: 0
@@ -90,6 +116,8 @@ test('no match', t => {
 
 test('no match from output buffer', t => {
     const h = hugo();
+
+    t.plan(3);
 
     // Add items to output buffer
     h.addItems(items);

@@ -1,11 +1,10 @@
 // @flow
-'use strict';
 
-import CacheConf from 'cache-conf';
-import moment from 'moment';
-import readPkg from 'read-pkg';
-import latestVersion from 'latest-version';
-import got from 'got';
+const CacheConf = require('cache-conf');
+const moment = require('moment');
+const readPkg = require('read-pkg');
+const latestVersion = require('latest-version');
+const got = require('got');
 
 /**
  * Hugo Updater
@@ -50,23 +49,24 @@ class Updater {
         const pkgUrl: string = `https://encrypted.google.com/search?sourceid=chrome&ie=UTF-8&q=${searchParam}&btnI`;
 
         let latest = await got(`https://github.com/packal/repository/blob/master/${bundleId}/appcast.xml`)
-            .catch(() => {
+            .catch(err => {
                 // Set to false on failure (e.g. not found).
+                console.error(err);
                 return false;
             })
             .then(response => {
                 // Get version from XML
-                let version: string = response.body.match(/<version>(.+)<\/version>/)[1];
+                let versionMatches = response.body.match(/<version>(.+)<\/version>/);
 
-                if (!version) {
-                    return false;
+                if (versionMatches && versionMatches.length > 0) {
+                    return {
+                        version: response.body.match(/<version>(.+)<\/version>/)[1],
+                        url: pkgUrl,
+                        checkedOnline: false
+                    };
                 }
 
-                return {
-                    version: version,
-                    url: pkgUrl,
-                    checkedOnline: false
-                };
+                return false;
             });
 
         // Cache results

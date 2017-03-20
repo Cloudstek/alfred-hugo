@@ -1,16 +1,18 @@
 // @flow
-'use strict';
 
-import Conf from 'conf';
-import CacheConf from 'cache-conf';
-import moment from 'moment';
-import semver from 'semver';
-import notifier from 'node-notifier';
-import path from 'path';
-import got from 'got';
-import Fuse from 'fuse.js';
+const CacheConf = require('cache-conf');
+const Conf = require('conf');
+const del = require('del');
+const Fuse = require('fuse.js');
+const got = require('got');
+const moment = require('moment');
+const notifier = require('node-notifier');
+const os = require('os');
+const path = require('path');
+const semver = require('semver');
 
-import updater from './updater';
+const FileCache = require('./file-cache');
+const updater = require('./updater');
 
 /**
  * Hugo
@@ -69,6 +71,7 @@ class Hugo {
 
         // Save options
         this._options = {
+            useTmpCache: true,
             checkUpdates: true,
             updateSource: 'packal',
             updateInterval: moment.duration(1, 'days'),
@@ -121,6 +124,18 @@ class Hugo {
     }
 
     /**
+     * Number of Alfred items in the current output buffer
+     * @return {number}
+     */
+    get itemCount(): number {
+        if (this.outputBuffer && this.outputBuffer.items) {
+            return this.outputBuffer.items.length;
+        }
+
+        return 0;
+    }
+
+    /**
      * Current output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @return {Object} Object to be output and interpreted by Alfred
@@ -134,13 +149,20 @@ class Hugo {
      * @return {Object}
      */
     get workflowMeta(): Object {
+        let cacheDir = process.env.alfred_workflow_cache;
+        let bundleId = process.env.alfred_workflow_bundleid;
+
+        if (bundleId && this._options.useTmpCache === true) {
+            cacheDir = path.resolve(path.join(os.tmpdir(), bundleId));
+        }
+
         return {
             name: process.env.alfred_workflow_name,
             version: process.env.alfred_workflow_version,
             uid: process.env.alfred_workflow_uid,
-            bundleId: process.env.alfred_workflow_bundleid,
+            bundleId: bundleId,
             data: process.env.alfred_workflow_data,
-            cache: process.env.alfred_workflow_cache,
+            cache: cacheDir,
             icon: path.join(process.cwd(), 'icon.png')
         };
     }
@@ -253,8 +275,21 @@ class Hugo {
     }
 
     /**
+     * Cache processed data
+     * This allows you to read and process the data once, then storing it in cache until the file has changed again.
+     *
+     * @param {string} filepath File path
+     * @param {string} cacheName Cache name (must be unique for each file)
+     * @return {FileCache}
+     */
+    cacheFile(filePath: string, cacheName: string): FileCache {
+        return new FileCache(filePath, cacheName, this.workflowMeta.cache);
+    }
+
+    /**
      * Check for updates and notify the user
      * @async
+     * @return {Promise}
      */
     async checkUpdates() {
         // No need to check if we're not showing anything, duh.
@@ -304,6 +339,17 @@ class Hugo {
     }
 
     /**
+     * Clear cache
+     * @async
+     * @return {Promise}
+     */
+    async clearCache() {
+        if (this.workflowMeta.cache) {
+            return del(path.join(this.workflowMeta.cache, '*'));
+        }
+    }
+
+    /**
      * Filter added items (output buffer) with fuse.js
      * @see http://fusejs.io
      * @param {string} query Search string
@@ -339,6 +385,15 @@ class Hugo {
             } else {
                 options.updateInterval = moment.duration(options.updateInterval, 'seconds') || moment.duration(1, 'days');
             }
+        }
+
+        // Update cache dir
+        if ('useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache) {
+            this.cache = new CacheConf({
+                configName: 'cache',
+                cwd: this.workflowMeta.cache,
+                version: this.workflowMeta.version
+            });
         }
 
         this._options = Object.assign({}, this._options, options);
