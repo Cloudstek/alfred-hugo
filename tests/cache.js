@@ -1,5 +1,4 @@
-import del from 'del';
-import fs from 'fs';
+import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import tempfile from 'tempfile';
@@ -15,19 +14,15 @@ const testData = {
  * Clean-up
  * @async
  */
-async function cleanUp() {
-    return del([
-        path.resolve(path.join(os.tmpdir(), 'my.work.flow')),
-        process.env.alfred_workflow_cache
-    ], {
-        force: true
-    });
+function cleanUp() {
+    fs.emptyDirSync(path.resolve(path.join(os.tmpdir(), 'my.work.flow')));
+    fs.emptyDirSync(process.env.alfred_workflow_cache);
 }
 
 /**
  * Set-up
  */
-test.beforeEach(async t => {
+test.beforeEach(t => {
     const h = hugo();
 
     h.options({
@@ -36,7 +31,7 @@ test.beforeEach(async t => {
 
     t.context.hugo = h;
 
-    return cleanUp();
+    cleanUp();
 });
 
 /**
@@ -54,8 +49,6 @@ test.serial('tmp cache dir', t => {
 
     // Check cache path
     t.is(path.resolve(path.join(os.tmpdir(), 'my.work.flow')), h.workflowMeta.cache);
-
-    console.log(path.resolve(path.join(os.tmpdir(), 'my.work.flow')));
 
     // Set and get cache data
     h.cache.set('test', testData);
@@ -113,6 +106,25 @@ test.serial('changing cache dir', t => {
 });
 
 /**
+ * Check cache is properly cleaned
+ */
+test.serial('cleaning cache dir', t => {
+    const h = t.context.hugo;
+
+    t.plan(2);
+
+    // Set cache data
+    h.cache.set('test', testData);
+    t.deepEqual(h.cache.get('test'), testData);
+
+    // Clear cache
+    h.clearCacheSync();
+
+    // Check cache
+    t.falsy(h.cache.get('test'));
+});
+
+/**
  * Process file and store results in file cache
  */
 test.serial('process file and cache it', t => {
@@ -127,8 +139,8 @@ test.serial('process file and cache it', t => {
     // Get FileCache instance
     let cachedFile = h.cacheFile(tmpFile, 'foo');
 
-    // Listen to changed event to process data
-    cachedFile.on('changed', (cache, file, hash) => {
+    // Listen to change event to process data
+    cachedFile.on('change', (cache, file, hash) => {
         t.is(cache.constructor.name, 'FileCacheStore');
         t.is(typeof file, 'string');
         t.true(file.length > 0);
@@ -164,8 +176,8 @@ test.serial('process file and check if cached', t => {
     // Get FileCache instance
     let cachedFile = h.cacheFile(tmpFile, 'foo');
 
-    // Listen to changed event to process data
-    cachedFile.once('changed', cache => {
+    // Listen to change event to process data
+    cachedFile.once('change', cache => {
         t.is(cache.constructor.name, 'FileCacheStore');
         cache.store(testData);
     });
@@ -176,8 +188,8 @@ test.serial('process file and check if cached', t => {
     // Verify data
     t.deepEqual(data, testData);
 
-    // Listen to changed event (which should not be emitted now)
-    cachedFile.once('changed', () => {
+    // Listen to change event (which should not be emitted now)
+    cachedFile.once('change', () => {
         t.fail('Data has not been cached.');
     });
 
@@ -191,6 +203,6 @@ test.serial('process file and check if cached', t => {
 /**
  * Tear-down
  */
-test.afterEach.always(async () => {
-    return cleanUp();
+test.afterEach.always(() => {
+    cleanUp();
 });
