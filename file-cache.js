@@ -1,9 +1,5 @@
 'use strict';
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
-
-var _stringify2 = _interopRequireDefault(_stringify);
-
 var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
 
 var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
@@ -26,11 +22,10 @@ var _createClass3 = _interopRequireDefault(_createClass2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var fs = require('fs');
-var path = require('path');
 var crypto = require('crypto');
-var mkdirp = require('mkdirp');
 var EventEmitter = require('events').EventEmitter;
+var fs = require('fs-extra');
+var path = require('path');
 
 var FileCacheStore = function () {
     function FileCacheStore() {
@@ -71,6 +66,7 @@ var FileCache = function (_EventEmitter) {
         _this.filePath = filePath;
         _this.cacheName = cacheName;
         _this.cacheDir = cacheDir;
+        _this.isCleaning = false;
         return _this;
     }
 
@@ -94,29 +90,45 @@ var FileCache = function (_EventEmitter) {
 
                 var hash = crypto.createHash('sha1').update(file, 'utf8').digest('hex');
 
-                if (!this.cacheDir) {
-                    console.log('No cache dir set');
-                    this.emit('changed', eventResult, file, hash);
+                if (!this.cacheDir || this.isCleaning === true) {
+                    this.emit('change', eventResult, file, hash);
                     return eventResult.contents;
                 }
 
                 var cachePath = path.join(this.cacheDir, this.cacheName, hash);
 
                 if (this._fileExists(cachePath)) {
-                    return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+                    return fs.readJsonSync(cachePath, { throws: false });
                 }
 
-                if (!this._fileExists(path.dirname(cachePath))) {
-                    mkdirp.sync(path.dirname(cachePath));
-                }
+                fs.ensureDirSync(path.dirname(cachePath));
 
-                this.emit('changed', eventResult, file, hash);
+                this.emit('change', eventResult, file, hash);
 
-                fs.writeFileSync(cachePath, (0, _stringify2.default)(eventResult.contents));
+                fs.writeJsonSync(cachePath, eventResult.contents);
                 return eventResult.contents;
             }
 
             return null;
+        }
+    }, {
+        key: 'clearCache',
+        value: function clearCache() {
+            var _this2 = this;
+
+            if (!this.cacheDir) {
+                return;
+            }
+
+            this.isCleaning = true;
+
+            fs.emptyDir(path.join(this.cacheDir, this.cacheName), function (err) {
+                if (err) {
+                    console.error(err);
+                }
+
+                _this2.isCleaning = false;
+            });
         }
     }]);
     return FileCache;

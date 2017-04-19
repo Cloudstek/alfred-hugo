@@ -294,9 +294,9 @@ Callback to execute when the keyword matches the first argument. The callback ta
 
 Processing/parsing files often takes time and is only needed when the file has changed. You can cache the results for a period of time, but you'll be left with an outdated cache when the file changes.
 
-This method makes caching the processed results a lot easier by checking whether a file has changed. If it hasn't changed, `get()` will return the cached value. If no cached result is found or the file has changed, the `changed` event will be emitted with a reference to the cache store, file contents and SHA-1 hash so you can process your file and store the results in the cache store.
+This method makes caching the processed results a lot easier by checking whether a file has changed. If it hasn't changed, `get()` will return the cached value. If no cached result is found or the file has changed, the `change` event will be emitted with a reference to the cache store, file contents and SHA-1 hash so you can process your file and store the results in the cache store.
 
-*\* It's recommended to have the `useTmpCache` option set to `true` to prevent the cache from piling up as it isn't cleaned from time to time, unlike the `/tmp` folder which is cleared after a reboot.*
+*\* It's recommended to have the `useTmpCache` option set to `true` to prevent the cache from piling up as it isn't cleaned from time to time, unlike your OS temporary folder (for example `/tmp`) which is cleared after a reboot.*
 
 ##### filepath
 
