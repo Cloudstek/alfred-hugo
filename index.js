@@ -28,7 +28,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var CacheConf = require('cache-conf');
 var Conf = require('conf');
-var del = require('del');
+var fs = require('fs-extra');
 var Fuse = require('fuse.js');
 var got = require('got');
 var moment = require('moment');
@@ -239,7 +239,7 @@ var Hugo = function () {
                                     break;
                                 }
 
-                                return _context2.abrupt('return', del(path.join(this.workflowMeta.cache, '*')));
+                                return _context2.abrupt('return', fs.emptyDir(path.join(this.workflowMeta.cache)));
 
                             case 2:
                             case 'end':
@@ -255,6 +255,13 @@ var Hugo = function () {
 
             return clearCache;
         }()
+    }, {
+        key: 'clearCacheSync',
+        value: function clearCacheSync() {
+            if (this.workflowMeta.cache) {
+                return fs.emptyDirSync(path.join(this.workflowMeta.cache));
+            }
+        }
     }, {
         key: 'filterItems',
         value: function filterItems(query) {
@@ -424,9 +431,10 @@ var Hugo = function () {
     }, {
         key: 'alfredMeta',
         get: function get() {
-            return {
+            var data = {
                 version: process.env.alfred_version,
                 theme: process.env.alfred_theme,
+                themeFile: '',
                 themeBackground: process.env.alfred_theme_background,
                 themeSelectionBackground: process.env.alfred_theme_selection_background,
                 themeSubtext: parseFloat(process.env.alfred_theme_subtext),
@@ -434,6 +442,32 @@ var Hugo = function () {
                 preferencesLocalHash: process.env.alfred_preferences_localhash,
                 debug: process.env.alfred_debug === '1'
             };
+
+            if (process.env.HOME && process.env.alfred_theme) {
+                var homedir = process.env.HOME || '';
+                var themeName = process.env.alfred_theme || '';
+                var alfredMajor = semver.major(process.env.alfred_version);
+
+                var themeFile = path.resolve(homedir, 'Library', 'Application Support', 'Alfred ' + alfredMajor, 'Alfred.alfredpreferences', 'themes', themeName, 'theme.json');
+
+                try {
+                    fs.statSync(themeFile);
+                    data.themeFile = themeFile;
+                } catch (e) {}
+            }
+
+            return data;
+        }
+    }, {
+        key: 'alfredTheme',
+        get: function get() {
+            var themeFile = this.alfredMeta.themeFile;
+
+            if (!themeFile) {
+                return {};
+            }
+
+            return fs.readJsonSync(themeFile, { throws: false }) || {};
         }
     }, {
         key: 'input',
