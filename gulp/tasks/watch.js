@@ -5,4 +5,4 @@ let task = done => {
     gulp.watch(['./**/*.js.flow', '!node_modules', '!node_modules/**'], ['babel']);
 };
 
-module.exports = [['build'], task];
+module.exports = [['default'], task];

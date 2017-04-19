@@ -5,7 +5,7 @@ const babel = require('gulp-babel');
 const rename = require('gulp-rename');
 
 let task = () => {
-    let babelrc = JSON.parse(fs.readFileSync('.babelrc') || '{}');
+    let babelrc = JSON.parse(fs.readFileSync('.babelrc', 'utf8') || '{}');
 
     return gulp.src(['./**/*.js.flow', '!node_modules', '!node_modules/**'])
         .pipe(babel(babelrc))
