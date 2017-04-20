@@ -63,8 +63,6 @@ test.beforeEach('setup', t => {
 test('check packal for updates uncached', async t => {
     const u = t.context.updater;
 
-    t.plan(4);
-
     let update = await u.checkUpdates('packal', moment.duration(1, 'day'));
 
     t.is(update.version, '2.1.0');
@@ -78,8 +76,6 @@ test('check packal for updates uncached', async t => {
  */
 test('check packal for updates cached', async t => {
     const u = t.context.updater;
-
-    t.plan(6);
 
     // Check for updates
     let update = await u.checkUpdates('packal', moment.duration(2, 'seconds'));
@@ -109,8 +105,6 @@ test('check packal for updates cached', async t => {
 test('check npm for updates uncached', async t => {
     const u = t.context.updater;
 
-    t.plan(3);
-
     let update = await u.checkUpdates('npm', moment.duration(1, 'day'), t.context.pkg);
 
     t.is(update.version, '2.1.0');
@@ -123,8 +117,6 @@ test('check npm for updates uncached', async t => {
  */
 test('check npm for updates cached', async t => {
     const u = t.context.updater;
-
-    t.plan(5);
 
     // Check for updates
     let update = await u.checkUpdates('npm', moment.duration(2, 'seconds'), t.context.pkg);
@@ -152,8 +144,6 @@ test('check npm for updates cached', async t => {
  */
 test.serial('update notification item', async t => {
     const h = t.context.hugo;
-
-    t.plan(8);
 
     h.options({
         updateSource: 'packal'

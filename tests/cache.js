@@ -41,8 +41,6 @@ test.beforeEach('setup', t => {
 test.serial('tmp cache dir', t => {
     const h = t.context.hugo;
 
-    t.plan(2);
-
     // Set options
     h.options({
         useTmpCache: true
@@ -62,8 +60,6 @@ test.serial('tmp cache dir', t => {
 test.serial('standard cache dir', t => {
     const h = t.context.hugo;
 
-    t.plan(2);
-
     // Check cache path
     t.is(process.env.alfred_workflow_cache, h.workflowMeta.cache);
 
@@ -77,8 +73,6 @@ test.serial('standard cache dir', t => {
  */
 test.serial('changing cache dir', t => {
     const h = t.context.hugo;
-
-    t.plan(3);
 
     // Check cache path
     t.is(process.env.alfred_workflow_cache, h.workflowMeta.cache);
@@ -101,8 +95,6 @@ test.serial('changing cache dir', t => {
  */
 test.serial('cleaning cache dir', t => {
     const h = t.context.hugo;
-
-    t.plan(4);
 
     // Set cache data
     h.cache.set('test', t.context.testData);
