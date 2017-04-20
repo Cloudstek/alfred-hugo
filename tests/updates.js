@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import path from 'path';
 import test from 'ava';
 import nock from 'nock';
@@ -8,17 +8,17 @@ import moment from 'moment';
 import {hugo, updater} from './_init';
 
 /**
- * Mocking
+ * Set-up
  */
-test.before(() => {
+test.before('mock requests with nock', () => {
     nock('https://github.com')
+        .persist()
         .get('/packal/repository/blob/master/my.work.flow/appcast.xml')
-        .times(5)
         .reply(200, fs.readFileSync(path.join(__dirname, 'mocks/appcast.xml')));
 
     nock('https://registry.npmjs.org')
+        .persist()
         .get('/alfred-my-workflow')
-        .times(4)
         .reply(200, JSON.stringify({
             name: 'alfred-my-workflow',
             'dist-tags': {
@@ -37,10 +37,7 @@ test.before(() => {
         }));
 });
 
-/**
- * Set-up
- */
-test.beforeEach(t => {
+test.beforeEach('setup', t => {
     const h = hugo();
     const u = updater();
 
@@ -66,8 +63,6 @@ test.beforeEach(t => {
 test('check packal for updates uncached', async t => {
     const u = t.context.updater;
 
-    t.plan(4);
-
     let update = await u.checkUpdates('packal', moment.duration(1, 'day'));
 
     t.is(update.version, '2.1.0');
@@ -81,8 +76,6 @@ test('check packal for updates uncached', async t => {
  */
 test('check packal for updates cached', async t => {
     const u = t.context.updater;
-
-    t.plan(6);
 
     // Check for updates
     let update = await u.checkUpdates('packal', moment.duration(2, 'seconds'));
@@ -112,8 +105,6 @@ test('check packal for updates cached', async t => {
 test('check npm for updates uncached', async t => {
     const u = t.context.updater;
 
-    t.plan(3);
-
     let update = await u.checkUpdates('npm', moment.duration(1, 'day'), t.context.pkg);
 
     t.is(update.version, '2.1.0');
@@ -126,8 +117,6 @@ test('check npm for updates uncached', async t => {
  */
 test('check npm for updates cached', async t => {
     const u = t.context.updater;
-
-    t.plan(5);
 
     // Check for updates
     let update = await u.checkUpdates('npm', moment.duration(2, 'seconds'), t.context.pkg);
@@ -156,8 +145,6 @@ test('check npm for updates cached', async t => {
 test.serial('update notification item', async t => {
     const h = t.context.hugo;
 
-    t.plan(8);
-
     h.options({
         updateSource: 'packal'
     });
@@ -183,4 +170,11 @@ test.serial('update notification item', async t => {
     t.deepEqual(arg.alfredworkflow.variables, {
         task: 'wfUpdate'
     });
+});
+
+/**
+ * Tear-down
+ */
+test.after.always('nock cleanup', () => {
+    nock.cleanAll();
 });

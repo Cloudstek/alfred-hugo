@@ -1,10 +1,9 @@
 // @flow
 
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
-const mkdirp = require('mkdirp');
 const EventEmitter = require('events').EventEmitter;
+const fs = require('fs-promise');
+const path = require('path');
 
 /**
  * FileCache
@@ -62,6 +61,7 @@ class FileCache extends EventEmitter {
     filePath: string;
     cacheName: string;
     cacheDir: string;
+    isCleaning: boolean;
 
     /**
      * FileCache constructor
@@ -76,6 +76,7 @@ class FileCache extends EventEmitter {
         this.filePath = filePath;
         this.cacheName = cacheName;
         this.cacheDir = cacheDir;
+        this.isCleaning = false;
     }
 
     /**
@@ -109,8 +110,7 @@ class FileCache extends EventEmitter {
 
             // Always call callback when cache dir is not set
             if (!this.cacheDir) {
-                console.log('No cache dir set');
-                this.emit('changed', eventResult, file, hash);
+                this.emit('change', eventResult, file, hash);
                 return eventResult.contents;
             }
 
@@ -119,23 +119,46 @@ class FileCache extends EventEmitter {
 
             // Return cached data if found
             if (this._fileExists(cachePath)) {
-                return JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+                return fs.readJsonSync(cachePath, {throws: false});
             }
 
             // Create cache directory if it doesn't exist
-            if (!this._fileExists(path.dirname(cachePath))) {
-                mkdirp.sync(path.dirname(cachePath));
-            }
+            fs.ensureDirSync(path.dirname(cachePath));
 
             // Get processed data
-            this.emit('changed', eventResult, file, hash);
+            this.emit('change', eventResult, file, hash);
 
             // Write cache
-            fs.writeFileSync(cachePath, JSON.stringify(eventResult.contents));
+            fs.writeJsonSync(cachePath, eventResult.contents);
             return eventResult.contents;
         }
 
         return null;
+    }
+
+    /**
+     * Clear cache
+     * @async
+     * @return {Promise}
+     */
+    async clearCache() {
+        if (!this.cacheDir) {
+            return;
+        }
+
+        return fs.emptyDir(path.join(this.cacheDir, this.cacheName));
+    }
+
+    /**
+     * Clear cache synchronously
+     * @return {void}
+     */
+    clearCacheSync() {
+        if (!this.cacheDir) {
+            return;
+        }
+
+        return fs.emptyDirSync(path.join(this.cacheDir, this.cacheName));
     }
 }
 

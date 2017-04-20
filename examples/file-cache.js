@@ -25,8 +25,8 @@ function myProcessingFunction(file) {
 // Get cached file instance
 let file = Hugo.cacheFile('path/to/my/file', 'myfile');
 
-// Subscribe to changed event
-file.on('changed', function (cache, file) {
+// Subscribe to change event
+file.on('change', function (cache, file) {
     let result = myProcessingFunction(file);
 
     cache.store(result);

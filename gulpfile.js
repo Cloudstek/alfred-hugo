@@ -1,16 +1,13 @@
 const gulp = require('./gulp')([
     'babel',
     'eslint',
-    'watch',
     'watch'
 ]);
 
-gulp.task('build', [
-    'babel',
+gulp.task('default', [
     'eslint',
+    'babel'
 ]);
 
-gulp.task('default', [
-    'watch',
-    'build'
-]);
+// Backwards compatibility
+gulp.task('build', ['default']);

@@ -128,7 +128,7 @@ Type: `boolean`
 
 Default: `true`
 
-Use the `/tmp/<workflow bundle id>` directory for your workflow cache when `true`. When `false` it will use the path in the `alfred_workflow_cache` environment variable as cache directory, which is set by Alfred by default. You can override this environment variable if you like to set a custom cache directory.
+Use the OS temp directory for your workflow cache when `true`, otherwise use the directory set by Alfred in  the`alfred_workflow_cache` environment variable. It's recommended to leave this set at `true` unless you want your cache to survive reboots and clean it up yourself every once in a while.
 
 ### Properties
 
@@ -138,10 +138,13 @@ Type: `Object`
 
 Collection of Alfred metadata that is available to the script through environment variables. See the alfred documentation for more info: https://www.alfredapp.com/help/workflows/script-environment-variables/.
 
+When you use a custom Alfred theme, the `themeFile` property will be set to the path of the theme file (which is a JSON file). Also see [Hugo.alfredTheme](#hugo.alfredtheme).
+
 ```javascript
 {
     version: process.env.alfred_version,
     theme: process.env.alfred_theme,
+    themeFile: '',
     themeBackground: process.env.alfred_theme_background,
     themeSelectionBackground: process.env.alfred_theme_selection_background,
     themeSubtext: parseFloat(process.env.alfred_theme_subtext),
@@ -151,6 +154,12 @@ Collection of Alfred metadata that is available to the script through environmen
 }
 ```
 *Also see: [Hugo.workflowMeta](#hugo.workflowmeta)*
+
+#### Hugo.alfredTheme
+
+Type: `Object`
+
+When a custom Alfred theme is used, this will return the contents of the theme file. Usefull if you need to render icons on-the-fly and want to know the background colour.
 
 #### Hugo.cache
 
@@ -294,9 +303,9 @@ Callback to execute when the keyword matches the first argument. The callback ta
 
 Processing/parsing files often takes time and is only needed when the file has changed. You can cache the results for a period of time, but you'll be left with an outdated cache when the file changes.
 
-This method makes caching the processed results a lot easier by checking whether a file has changed. If it hasn't changed, `get()` will return the cached value. If no cached result is found or the file has changed, the `changed` event will be emitted with a reference to the cache store, file contents and SHA-1 hash so you can process your file and store the results in the cache store.
+This method makes caching the processed results a lot easier by checking whether a file has changed. If it hasn't changed, `get()` will return the cached value. If no cached result is found or the file has changed, the `change` event will be emitted with a reference to the cache store, file contents and SHA-1 hash so you can process your file and store the results in the cache store.
 
-*\* It's recommended to have the `useTmpCache` option set to `true` to prevent the cache from piling up as it isn't cleaned from time to time, unlike the `/tmp` folder which is cleared after a reboot.*
+*\* It's recommended to have the `useTmpCache` option set to `true` to prevent the cache from piling up as it isn't cleaned from time to time, unlike your OS temporary folder (for example `/tmp`) which is cleared after a reboot.*
 
 ##### filepath
 
@@ -315,6 +324,12 @@ Check out [file-cache.js.flow](file-cache.js.flow) and the [example](examples/fi
 #### Hugo.checkUpdates()
 
 Checks for workflow package updates on either NPM or Packal when enabled. No need to call this method manually, updates will be checked automagically ​:sparkles:​
+
+#### Hugo.clearCache()
+
+Empties the workflow cache directory but doesn't remove the directory itself.
+
+Call `Hugo.clearCacheSync()` if you need it synchronously.
 
 #### Hugo.filterItems(query, options)
 

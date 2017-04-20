@@ -1,6 +1,9 @@
 {
   "parser": "babel-eslint",
-  "extends": "xo",
+  "extends": [
+    "xo",
+    "plugin:ava/recommended"
+  ],
   "env": {
     "node": true,
     "browser": false
@@ -16,6 +19,7 @@
     "flowtype-errors/show-errors": 2
   },
   "plugins": [
-    "flowtype-errors"
+    "flowtype-errors",
+    "ava"
   ]
 }

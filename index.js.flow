@@ -2,7 +2,7 @@
 
 const CacheConf = require('cache-conf');
 const Conf = require('conf');
-const del = require('del');
+const fs = require('fs-promise');
 const Fuse = require('fuse.js');
 const got = require('got');
 const moment = require('moment');
@@ -100,9 +100,10 @@ class Hugo {
      * @return {Object}
      */
     get alfredMeta(): Object {
-        return {
+        let data = {
             version: process.env.alfred_version,
             theme: process.env.alfred_theme,
+            themeFile: '',
             themeBackground: process.env.alfred_theme_background,
             themeSelectionBackground: process.env.alfred_theme_selection_background,
             themeSubtext: parseFloat(process.env.alfred_theme_subtext),
@@ -110,6 +111,36 @@ class Hugo {
             preferencesLocalHash: process.env.alfred_preferences_localhash,
             debug: process.env.alfred_debug === '1'
         };
+
+        if (process.env.HOME && process.env.alfred_theme) {
+            let homedir = process.env.HOME || '';
+            let themeName = process.env.alfred_theme || '';
+            let alfredMajor = semver.major(process.env.alfred_version);
+
+            let themeFile = path.resolve(homedir, 'Library', 'Application Support', 'Alfred ' + alfredMajor,
+                'Alfred.alfredpreferences', 'themes', themeName, 'theme.json');
+
+            try {
+                fs.statSync(themeFile);
+                data.themeFile = themeFile;
+            } catch (e) {}
+        }
+
+        return data;
+    }
+
+    /**
+     * Alfred theme
+     * @return {Object}
+     */
+    get alfredTheme(): Object {
+        let themeFile = this.alfredMeta.themeFile;
+
+        if (!themeFile) {
+            return {};
+        }
+
+        return fs.readJsonSync(themeFile, {throws: false}) || {};
     }
 
     /**
@@ -345,7 +376,17 @@ class Hugo {
      */
     async clearCache() {
         if (this.workflowMeta.cache) {
-            return del(path.join(this.workflowMeta.cache, '*'));
+            return fs.emptyDir(this.workflowMeta.cache);
+        }
+    }
+
+    /**
+     * Clear cache (sync)
+     * @return {void}
+     */
+    clearCacheSync() {
+        if (this.workflowMeta.cache) {
+            return fs.emptyDirSync(this.workflowMeta.cache);
         }
     }
 
@@ -378,6 +419,8 @@ class Hugo {
      * @return {Hugo}
      */
     options(options: Object): Hugo {
+        let cacheDirChanged = 'useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache;
+
         // Convert updateInterval to moment.Duration object
         if (options.updateInterval && !moment.isDuration(options.updateInterval)) {
             if (options.updateInterval < 1) {
@@ -387,16 +430,17 @@ class Hugo {
             }
         }
 
+        // Update options
+        this._options = Object.assign({}, this._options, options);
+
         // Update cache dir
-        if ('useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache) {
+        if (cacheDirChanged) {
             this.cache = new CacheConf({
                 configName: 'cache',
                 cwd: this.workflowMeta.cache,
                 version: this.workflowMeta.version
             });
         }
-
-        this._options = Object.assign({}, this._options, options);
 
         return this;
     }
@@ -482,7 +526,7 @@ class Hugo {
 
         // Check cache for a hit
         if (cacheAge && cacheAge > 0) {
-            let cacheResult: ?Object|?string = this.cache.get(url);
+            let cacheResult: Object|string|null = this.cache.get(url);
 
             if (cacheResult) {
                 return cacheResult;
