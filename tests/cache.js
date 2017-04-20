@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import tempy from 'tempy';
 import test from 'ava';
 
 import {hugo} from './_init';
@@ -93,7 +92,7 @@ test.serial('changing cache dir', t => {
 /**
  * Check cache is properly cleaned
  */
-test.serial('cleaning cache dir', t => {
+test.serial('cleaning cache dir', async t => {
     const h = t.context.hugo;
 
     // Set cache data
@@ -101,7 +100,7 @@ test.serial('cleaning cache dir', t => {
     t.deepEqual(h.cache.get('test'), t.context.testData);
 
     // Clear cache
-    h.clearCacheSync();
+    await h.clearCache();
 
     // Check cache
     t.falsy(h.cache.get('test'));
@@ -120,82 +119,6 @@ test.serial('cleaning cache dir', t => {
 
     // Check cache
     t.falsy(h.cache.get('test'));
-});
-
-/**
- * Process file and store results in file cache
- */
-test.serial('process file and cache it', t => {
-    const h = t.context.hugo;
-    const tmpFile = tempy.file();
-
-    t.plan(6);
-
-    // Create file
-    fs.writeFileSync(tmpFile, 'Hello world!');
-
-    // Get FileCache instance
-    let cachedFile = h.cacheFile(tmpFile, 'foo');
-
-    // Listen to change event to process data
-    cachedFile.on('change', (cache, file, hash) => {
-        t.is(cache.constructor.name, 'FileCacheStore');
-        t.is(typeof file, 'string');
-        t.true(file.length > 0);
-        t.is(typeof hash, 'string');
-        t.true(file.length > 0);
-
-        cache.store({
-            hello: 'world!'
-        });
-    });
-
-    // Fetch data
-    let data = cachedFile.get();
-
-    // Verify data
-    t.deepEqual(data, {
-        hello: 'world!'
-    });
-});
-
-/**
- * Process file and check if cached when requested the second time
- */
-test.serial('process file and check if cached', t => {
-    const h = t.context.hugo;
-    const tmpFile = tempy.file();
-
-    t.plan(3);
-
-    // Create file
-    fs.writeFileSync(tmpFile, 'Hello world!');
-
-    // Get FileCache instance
-    let cachedFile = h.cacheFile(tmpFile, 'foo');
-
-    // Listen to change event to process data
-    cachedFile.once('change', cache => {
-        t.is(cache.constructor.name, 'FileCacheStore');
-        cache.store(t.context.testData);
-    });
-
-    // Fetch data (uncached)
-    let data = cachedFile.get();
-
-    // Verify data
-    t.deepEqual(data, t.context.testData);
-
-    // Listen to change event (which should not be emitted now)
-    cachedFile.once('change', () => {
-        t.fail('Data has not been cached.');
-    });
-
-    // Fetch data again
-    data = cachedFile.get();
-
-    // Verify data
-    t.deepEqual(data, t.context.testData);
 });
 
 /**

@@ -54,8 +54,9 @@ test('exact match from output buffer', t => {
     const h = t.context.hugo;
 
     // Add items to output buffer
+    t.is(h.itemCount, 0);
     h.addItems(t.context.items);
-    t.is(h._outputBuffer.items.length, 3);
+    t.is(h.itemCount, 3);
 
     // Filter items
     h.filterItems('bla@test.org', {
@@ -63,7 +64,7 @@ test('exact match from output buffer', t => {
         threshold: 0
     });
 
-    let matches = h._outputBuffer.items;
+    let matches = h.outputBuffer.items;
     t.true(Array.isArray(matches));
     t.is(matches.length, 1);
     t.is(matches[0].title, 'Pinguin Test');
@@ -91,15 +92,16 @@ test('match multiple keys from output buffer', t => {
     const h = t.context.hugo;
 
     // Add items to output buffer
+    t.is(h.itemCount, 0);
     h.addItems(t.context.items);
-    t.is(h._outputBuffer.items.length, 3);
+    t.is(h.itemCount, 3);
 
     // Filter items
     h.filterItems('test', {
         keys: ['email', 'title']
     });
 
-    let matches = h._outputBuffer.items;
+    let matches = h.outputBuffer.items;
     t.true(Array.isArray(matches));
     t.true(matches.length === 3);
 });
@@ -126,8 +128,9 @@ test('no matches from output buffer', t => {
     const h = t.context.hugo;
 
     // Add items to output buffer
+    t.is(h.itemCount, 0);
     h.addItems(t.context.items);
-    t.is(h._outputBuffer.items.length, 3);
+    t.is(h.itemCount, 3);
 
     // Filter items
     h.filterItems('bla@test.it', {
@@ -135,7 +138,8 @@ test('no matches from output buffer', t => {
         threshold: 0
     });
 
-    let matches = h._outputBuffer.items;
+    let matches = h.outputBuffer.items;
     t.true(Array.isArray(matches));
-    t.true(matches.length === 0);
+    t.is(matches.length, 0);
+    t.is(h.itemCount, 0);
 });
