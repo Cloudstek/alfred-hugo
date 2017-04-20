@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const EventEmitter = require('events').EventEmitter;
-const fs = require('fs-extra');
+const fs = require('fs-promise');
 const path = require('path');
 
 /**
@@ -109,7 +109,7 @@ class FileCache extends EventEmitter {
             let hash = crypto.createHash('sha1').update(file, 'utf8').digest('hex');
 
             // Always call callback when cache dir is not set
-            if (!this.cacheDir || this.isCleaning === true) {
+            if (!this.cacheDir) {
                 this.emit('change', eventResult, file, hash);
                 return eventResult.contents;
             }
@@ -138,24 +138,27 @@ class FileCache extends EventEmitter {
 
     /**
      * Clear cache
-     * @return {void}
+     * @async
+     * @return {Promise}
      */
-    clearCache(): void {
+    async clearCache() {
         if (!this.cacheDir) {
             return;
         }
 
-        // Set cleaning flag
-        this.isCleaning = true;
+        return fs.emptyDir(path.join(this.cacheDir, this.cacheName));
+    }
 
-        // Clean async
-        fs.emptyDir(path.join(this.cacheDir, this.cacheName), err => {
-            if (err) {
-                console.error(err);
-            }
+    /**
+     * Clear cache synchronously
+     * @return {void}
+     */
+    clearCacheSync() {
+        if (!this.cacheDir) {
+            return;
+        }
 
-            this.isCleaning = false;
-        });
+        return fs.emptyDirSync(path.join(this.cacheDir, this.cacheName));
     }
 }
 

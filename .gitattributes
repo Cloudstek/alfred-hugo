@@ -1,2 +1,3 @@
 *.ai -diff
 *.svg -diff
+/*.js -diff
