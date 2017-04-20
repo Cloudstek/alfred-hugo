@@ -13,14 +13,14 @@ test.beforeEach(t => {
         checkUpdates: false
     });
 
-    t.context = h;
+    t.context.hugo = h;
 });
 
 /**
  * Items only
  */
 test('items only', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(1);
 
@@ -66,7 +66,7 @@ test('items only', t => {
  * Variables only
  */
 test('variables only', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(1);
 
@@ -99,7 +99,7 @@ test('variables only', t => {
  * Variables and items combined
  */
 test('variables and items combined', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(1);
 
@@ -131,7 +131,7 @@ test('variables and items combined', t => {
  * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
  */
 test('rerun parameter', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(1);
 
@@ -165,7 +165,7 @@ test('rerun parameter', t => {
  * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
  */
 test('invalid rerun parameter', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(2);
 
@@ -204,7 +204,7 @@ test('invalid rerun parameter', t => {
  * Invalid items
  */
 test('invalid items', t => {
-    const h = t.context;
+    const h = t.context.hugo;
 
     t.plan(1);
 

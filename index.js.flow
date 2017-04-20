@@ -376,7 +376,7 @@ class Hugo {
      */
     async clearCache() {
         if (this.workflowMeta.cache) {
-            return fs.emptyDir(path.join(this.workflowMeta.cache));
+            return fs.emptyDir(this.workflowMeta.cache);
         }
     }
 
@@ -386,7 +386,7 @@ class Hugo {
      */
     clearCacheSync() {
         if (this.workflowMeta.cache) {
-            return fs.emptyDirSync(path.join(this.workflowMeta.cache));
+            return fs.emptyDirSync(this.workflowMeta.cache);
         }
     }
 
@@ -419,6 +419,8 @@ class Hugo {
      * @return {Hugo}
      */
     options(options: Object): Hugo {
+        let cacheDirChanged = 'useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache;
+
         // Convert updateInterval to moment.Duration object
         if (options.updateInterval && !moment.isDuration(options.updateInterval)) {
             if (options.updateInterval < 1) {
@@ -428,16 +430,17 @@ class Hugo {
             }
         }
 
+        // Update options
+        this._options = Object.assign({}, this._options, options);
+
         // Update cache dir
-        if ('useTmpCache' in options && options.useTmpCache !== this._options.useTmpCache) {
+        if (cacheDirChanged) {
             this.cache = new CacheConf({
                 configName: 'cache',
                 cwd: this.workflowMeta.cache,
                 version: this.workflowMeta.version
             });
         }
-
-        this._options = Object.assign({}, this._options, options);
 
         return this;
     }
@@ -523,7 +526,7 @@ class Hugo {
 
         // Check cache for a hit
         if (cacheAge && cacheAge > 0) {
-            let cacheResult: ?Object|?string = this.cache.get(url);
+            let cacheResult: Object|string|null = this.cache.get(url);
 
             if (cacheResult) {
                 return cacheResult;

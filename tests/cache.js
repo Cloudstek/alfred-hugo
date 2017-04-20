@@ -1,18 +1,13 @@
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import tempfile from 'tempfile';
+import tempy from 'tempy';
 import test from 'ava';
 
 import {hugo} from './_init';
 
-const testData = {
-    foo: 'bar'
-};
-
 /**
  * Clean-up
- * @async
  */
 function cleanUp() {
     fs.emptyDirSync(path.resolve(path.join(os.tmpdir(), 'my.work.flow')));
@@ -22,14 +17,20 @@ function cleanUp() {
 /**
  * Set-up
  */
-test.beforeEach(t => {
+test.beforeEach('setup', t => {
     const h = hugo();
 
+    const testData = {
+        foo: 'bar'
+    };
+
     h.options({
-        checkUpdates: false
+        checkUpdates: false,
+        useTmpCache: false
     });
 
     t.context.hugo = h;
+    t.context.testData = testData;
 
     cleanUp();
 });
@@ -51,8 +52,8 @@ test.serial('tmp cache dir', t => {
     t.is(path.resolve(path.join(os.tmpdir(), 'my.work.flow')), h.workflowMeta.cache);
 
     // Set and get cache data
-    h.cache.set('test', testData);
-    t.deepEqual(h.cache.get('test'), testData);
+    h.cache.set('test', t.context.testData);
+    t.deepEqual(h.cache.get('test'), t.context.testData);
 });
 
 /**
@@ -63,17 +64,12 @@ test.serial('standard cache dir', t => {
 
     t.plan(2);
 
-    // Set options
-    h.options({
-        useTmpCache: false
-    });
-
     // Check cache path
     t.is(process.env.alfred_workflow_cache, h.workflowMeta.cache);
 
     // Set and get cache data
-    h.cache.set('test', testData);
-    t.deepEqual(h.cache.get('test'), testData);
+    h.cache.set('test', t.context.testData);
+    t.deepEqual(h.cache.get('test'), t.context.testData);
 });
 
 /**
@@ -84,16 +80,11 @@ test.serial('changing cache dir', t => {
 
     t.plan(3);
 
-    // Set options
-    h.options({
-        useTmpCache: false
-    });
-
     // Check cache path
     t.is(process.env.alfred_workflow_cache, h.workflowMeta.cache);
 
     // Set cache data
-    h.cache.set('test', testData);
+    h.cache.set('test', t.context.testData);
 
     // Change cache option
     h.options({
@@ -111,11 +102,26 @@ test.serial('changing cache dir', t => {
 test.serial('cleaning cache dir', t => {
     const h = t.context.hugo;
 
-    t.plan(2);
+    t.plan(4);
 
     // Set cache data
-    h.cache.set('test', testData);
-    t.deepEqual(h.cache.get('test'), testData);
+    h.cache.set('test', t.context.testData);
+    t.deepEqual(h.cache.get('test'), t.context.testData);
+
+    // Clear cache
+    h.clearCacheSync();
+
+    // Check cache
+    t.falsy(h.cache.get('test'));
+
+    // Change cache option
+    h.options({
+        useTmpCache: false
+    });
+
+    // Set cache data
+    h.cache.set('test', t.context.testData);
+    t.deepEqual(h.cache.get('test'), t.context.testData);
 
     // Clear cache
     h.clearCacheSync();
@@ -129,7 +135,7 @@ test.serial('cleaning cache dir', t => {
  */
 test.serial('process file and cache it', t => {
     const h = t.context.hugo;
-    const tmpFile = tempfile();
+    const tmpFile = tempy.file();
 
     t.plan(6);
 
@@ -166,7 +172,7 @@ test.serial('process file and cache it', t => {
  */
 test.serial('process file and check if cached', t => {
     const h = t.context.hugo;
-    const tmpFile = tempfile();
+    const tmpFile = tempy.file();
 
     t.plan(3);
 
@@ -179,14 +185,14 @@ test.serial('process file and check if cached', t => {
     // Listen to change event to process data
     cachedFile.once('change', cache => {
         t.is(cache.constructor.name, 'FileCacheStore');
-        cache.store(testData);
+        cache.store(t.context.testData);
     });
 
     // Fetch data (uncached)
     let data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, testData);
+    t.deepEqual(data, t.context.testData);
 
     // Listen to change event (which should not be emitted now)
     cachedFile.once('change', () => {
@@ -197,12 +203,12 @@ test.serial('process file and check if cached', t => {
     data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, testData);
+    t.deepEqual(data, t.context.testData);
 });
 
 /**
  * Tear-down
  */
-test.afterEach.always(() => {
+test.afterEach.always('cleanup', () => {
     cleanUp();
 });

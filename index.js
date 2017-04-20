@@ -239,7 +239,7 @@ var Hugo = function () {
                                     break;
                                 }
 
-                                return _context2.abrupt('return', fs.emptyDir(path.join(this.workflowMeta.cache)));
+                                return _context2.abrupt('return', fs.emptyDir(this.workflowMeta.cache));
 
                             case 2:
                             case 'end':
@@ -259,7 +259,7 @@ var Hugo = function () {
         key: 'clearCacheSync',
         value: function clearCacheSync() {
             if (this.workflowMeta.cache) {
-                return fs.emptyDirSync(path.join(this.workflowMeta.cache));
+                return fs.emptyDirSync(this.workflowMeta.cache);
             }
         }
     }, {
@@ -282,6 +282,8 @@ var Hugo = function () {
     }, {
         key: 'options',
         value: function options(_options) {
+            var cacheDirChanged = 'useTmpCache' in _options && _options.useTmpCache !== this._options.useTmpCache;
+
             if (_options.updateInterval && !moment.isDuration(_options.updateInterval)) {
                 if (_options.updateInterval < 1) {
                     delete _options.updateInterval;
@@ -290,15 +292,15 @@ var Hugo = function () {
                 }
             }
 
-            if ('useTmpCache' in _options && _options.useTmpCache !== this._options.useTmpCache) {
+            this._options = (0, _assign2.default)({}, this._options, _options);
+
+            if (cacheDirChanged) {
                 this.cache = new CacheConf({
                     configName: 'cache',
                     cwd: this.workflowMeta.cache,
                     version: this.workflowMeta.version
                 });
             }
-
-            this._options = (0, _assign2.default)({}, this._options, _options);
 
             return this;
         }

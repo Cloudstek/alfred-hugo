@@ -8,17 +8,17 @@ import moment from 'moment';
 import {hugo, updater} from './_init';
 
 /**
- * Mocking
+ * Set-up
  */
-test.before(() => {
+test.before('mock requests with nock', () => {
     nock('https://github.com')
+        .persist()
         .get('/packal/repository/blob/master/my.work.flow/appcast.xml')
-        .times(5)
         .reply(200, fs.readFileSync(path.join(__dirname, 'mocks/appcast.xml')));
 
     nock('https://registry.npmjs.org')
+        .persist()
         .get('/alfred-my-workflow')
-        .times(4)
         .reply(200, JSON.stringify({
             name: 'alfred-my-workflow',
             'dist-tags': {
@@ -37,10 +37,7 @@ test.before(() => {
         }));
 });
 
-/**
- * Set-up
- */
-test.beforeEach(t => {
+test.beforeEach('setup', t => {
     const h = hugo();
     const u = updater();
 
@@ -183,4 +180,11 @@ test.serial('update notification item', async t => {
     t.deepEqual(arg.alfredworkflow.variables, {
         task: 'wfUpdate'
     });
+});
+
+/**
+ * Tear-down
+ */
+test.after.always('nock cleanup', () => {
+    nock.cleanAll();
 });
