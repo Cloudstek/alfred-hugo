@@ -6,7 +6,7 @@ import {hugo} from './_init';
 /**
  * Set-up
  */
-test.beforeEach(t => {
+test.beforeEach('setup', t => {
     const h = hugo();
 
     h.options({

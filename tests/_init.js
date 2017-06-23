@@ -9,6 +9,7 @@ exports.hugo = () => {
     process.env.alfred_workflow_version = '1.0.0';
     process.env.alfred_workflow_bundleid = 'my.work.flow';
     process.env.alfred_workflow_cache = tempy.directory();
+    process.env.alfred_debug = false;
 
     return require('../index');
 };
@@ -19,6 +20,7 @@ exports.updater = () => {
     process.env.alfred_workflow_version = '1.0.0';
     process.env.alfred_workflow_bundleid = 'my.work.flow';
     process.env.alfred_workflow_cache = tempy.directory();
+    process.env.alfred_debug = false;
 
     return require('../updater');
 };

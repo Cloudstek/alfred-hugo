@@ -60,7 +60,7 @@ class Updater {
 
                 if (versionMatches && versionMatches.length > 0) {
                     return {
-                        version: response.body.match(/<version>(.+)<\/version>/)[1],
+                        version: versionMatches[1],
                         url: pkgUrl,
                         checkedOnline: false
                     };
