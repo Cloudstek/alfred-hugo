@@ -113,9 +113,17 @@ class Hugo {
         };
 
         if (process.env.HOME && process.env.alfred_theme) {
-            let homedir = process.env.HOME || '';
-            let themeName = process.env.alfred_theme || '';
-            let alfredMajor = semver.major(process.env.alfred_version);
+            let homedir: string = process.env.HOME || '';
+            let themeName: string = process.env.alfred_theme || '';
+            let alfredMajor: string = '';
+
+            if (process.env.alfred_version) {
+                alfredMajor = process.env.alfred_version.match(/([0-9]+)\./) || '';
+
+                if (alfredMajor && alfredMajor.length > 0) {
+                    alfredMajor = alfredMajor[1];
+                }
+            }
 
             let themeFile = path.resolve(homedir, 'Library', 'Application Support', 'Alfred ' + alfredMajor,
                 'Alfred.alfredpreferences', 'themes', themeName, 'theme.json');
@@ -332,6 +340,7 @@ class Hugo {
         await updater.checkUpdates(this._options.updateSource, this._options.updateInterval)
             .catch(err => {
                 console.error(err);
+                return;
             })
             .then(result => {
                 if (!result) {
@@ -341,6 +350,16 @@ class Hugo {
                 // Version information
                 let current: string = this.workflowMeta.version;
                 let latest: string = result.version;
+
+                if (!semver.valid(current)) {
+                    console.error(`Version ${current} is not a valid version number.`);
+                    return;
+                }
+
+                if (!semver.valid(latest)) {
+                    console.error(`Could not determine latest version number.`);
+                    return;
+                }
 
                 // Display notification
                 if (semver.gt(latest, current)) {
