@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
@@ -30,14 +30,14 @@
     "babel-eslint": "^7.1.1",
     "babel-plugin-transform-class-properties": "^6.23.0",
     "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.2.2",
+    "babel-preset-env": "^1.6.0",
     "babel-preset-flow": "^6.23.0",
     "delay": "^1.3.1",
     "eslint": "^3.18.0",
     "eslint-config-xo": "^0.17.0",
     "eslint-formatter-pretty": "^1.1.0",
     "eslint-plugin-ava": "^4.2.0",
-    "eslint-plugin-flowtype-errors": "^3.0.1",
+    "eslint-plugin-flowtype-errors": "^3.3.1",
     "flow-bin": "^0.40.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
@@ -45,7 +45,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^2.6.0",
     "hook-std": "^0.3.0",
-    "nock": "^9.0.9",
+    "nock": "^9.0.14",
     "tempy": "^0.1.0"
   },
   "dependencies": {
