@@ -8,7 +8,7 @@
  * only filters the output data and only by title but it is FAST! Use it if you don't require fancy filtering options.
  */
 
-const Hugo = require('alfred-hugo');
+const Hugo = require('../');
 
 // Add items to Hugo
 Hugo.addItems([

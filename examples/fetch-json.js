@@ -7,7 +7,7 @@
  * and both the name and email fields are searched for matches.
  */
 
-const Hugo = require('alfred-hugo');
+const Hugo = require('../');
 
 Hugo.fetch('http://jsonplaceholder.typicode.com/comments')
     .then(function (body) {
@@ -19,7 +19,7 @@ Hugo.fetch('http://jsonplaceholder.typicode.com/comments')
         });
 
         // Map our filtered API response items to Alfred items
-        items = Hugo.map(x => ({
+        items = items.map(x => ({
             title: x.name,
             subtitle: x.email,
             arg: x.id
