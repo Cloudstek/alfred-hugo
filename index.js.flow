@@ -100,8 +100,22 @@ class Hugo {
      * @return {Object}
      */
     get alfredMeta(): Object {
-        let data = {
-            version: process.env.alfred_version,
+        let version: string = process.env.alfred_version || '0.0.0';
+
+        // Check Alfred version for missing patch version (e.g. 3.4 is invalid, should be 3.4.0)
+        if (!semver.valid(version)) {
+            version += '.0';
+
+            // Check if adding .0 to the end makes a valid version string (eg. in case of 3.4)
+            if (!semver.valid(version) && process.env.alfred_debug === '1') {
+                console.error(`Invalid Alfred version: ${version}`);
+                version = '0.0.0';
+            }
+        }
+
+        // Gather environment information
+        let data: Object = {
+            version: version,
             theme: process.env.alfred_theme,
             themeFile: '',
             themeBackground: process.env.alfred_theme_background,
@@ -112,26 +126,21 @@ class Hugo {
             debug: process.env.alfred_debug === '1'
         };
 
-        if (process.env.HOME && process.env.alfred_theme) {
+        // Find and load curent Alfred theme file
+        if (process.env.HOME && data.theme) {
             let homedir: string = process.env.HOME || '';
-            let themeName: string = process.env.alfred_theme || '';
-            let alfredMajor: string = '';
 
-            if (process.env.alfred_version) {
-                alfredMajor = process.env.alfred_version.match(/([0-9]+)\./) || '';
-
-                if (alfredMajor && alfredMajor.length > 0) {
-                    alfredMajor = alfredMajor[1];
-                }
-            }
-
-            let themeFile = path.resolve(homedir, 'Library', 'Application Support', 'Alfred ' + alfredMajor,
-                'Alfred.alfredpreferences', 'themes', themeName, 'theme.json');
+            let themeFile = path.resolve(homedir, 'Library', 'Application Support', 'Alfred ' + semver.major(version),
+                'Alfred.alfredpreferences', 'themes', data.theme, 'theme.json');
 
             try {
                 fs.statSync(themeFile);
                 data.themeFile = themeFile;
-            } catch (e) {}
+            } catch (e) {
+                if (process.env.alfred_debug === '1') {
+                    console.error(`Could not find theme file "${themeFile}"`);
+                }
+            }
         }
 
         return data;
@@ -210,13 +219,14 @@ class Hugo {
      * Add item to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {Object} item Item to add
-     * @type {Hugo}
+     * @return {Hugo}
      */
     addItem(item: Object): Hugo {
         if (!this._outputBuffer.items) {
             this._outputBuffer.items = [];
         }
 
+        // Require item title
         if (!item.title) {
             if (this.alfredMeta.debug === true) {
                 console.error('Item skipped, missing title.');
@@ -224,18 +234,50 @@ class Hugo {
             return this;
         }
 
+        // Parse item variables
         if (item.arg && typeof item.arg === 'object') {
-            let arg = item.arg.arg || '';
+            let arg = item.arg.arg;
             let variables = item.arg.variables || {};
 
+            if (semver.gte(this.alfredMeta.version, '3.4.1')) {
+                // Delete item arg
+                delete item.arg;
+
+                // Only add arg when there is one
+                if (arg) {
+                    item.arg = arg;
+                }
+
+                // Item variables
+                item.variables = Object.assign({}, item.variables, variables);
+            } else {
+                // Merge item.variables (new style) with item.arg.variables (old style)
+                if (item.variables && typeof item.variables === 'object') {
+                    variables = Object.assign({}, variables, item.variables);
+                    delete item.variables;
+                }
+
+                // Build item arg (old style)
+                item.arg = JSON.stringify({
+                    alfredworkflow: {
+                        arg: arg,
+                        variables: variables
+                    }
+                });
+            }
+        } else if (item.variables && typeof item.variables === 'object' && semver.lt(this.alfredMeta.version, '3.4.1')) {
+            // Build item arg (old style) with new style item variables
             item.arg = JSON.stringify({
                 alfredworkflow: {
-                    arg: arg,
-                    variables: variables
+                    arg: item.arg,
+                    variables: item.variables
                 }
             });
+
+            delete item.variables;
         }
 
+        // Add item to output buffer
         this._outputBuffer.items.push(item);
 
         return this;
@@ -245,14 +287,9 @@ class Hugo {
      * Add items to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {Array.<Object>} items List of items to add
-     * @type {Hugo}
+     * @return {Hugo}
      */
     addItems(items: Array<Object>): Hugo {
-        if (!this._outputBuffer.items) {
-            this._outputBuffer.items = items;
-            return this;
-        }
-
         items.map(item => {
             this.addItem(item);
             return item;
@@ -266,7 +303,7 @@ class Hugo {
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      * @param {string} key Variable key
      * @param {string} value Variable value
-     * @type {Hugo}
+     * @return {Hugo}
      */
     addVariable(key: string, value: string): Hugo {
         if (!this._outputBuffer.variables) {
@@ -282,7 +319,7 @@ class Hugo {
      * Add session variables to output buffer
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json/
      * @param {Object} variables List of variables to add
-     * @type {Hugo}
+     * @return {Hugo}
      */
     addVariables(variables: Object): Hugo {
         if (!this._outputBuffer.variables) {
@@ -296,11 +333,94 @@ class Hugo {
     }
 
     /**
+     * Get session variable from output buffer
+     * @param {string} key Variable key
+     * @return {string|null} Variable value
+     */
+    getVariable(key: string): ?string {
+        if (!this._outputBuffer.variables) {
+            return null;
+        }
+
+        return this._outputBuffer.variables[key] || null;
+    }
+
+    /**
+     * Get session variables from output buffer
+     * @return {Object} Variables
+     */
+    getVariables(): Object {
+        return this._outputBuffer.variables || {};
+    }
+
+    /**
+     * Get item variable
+     * @param {Object} item
+     * @param {string} key Variable key
+     * @return {string|null} Variable value
+     */
+    getItemVariable(item: Object, key: string): ?string {
+        if (semver.gte(this.alfredMeta.version, '3.4.1')) {
+            if (item.variables) {
+                return item.variables[key] || null;
+            }
+        } else if (item.arg) {
+            try {
+                let arg = {};
+                let variables = {};
+
+                if (typeof item.arg === 'string') {
+                    arg = JSON.parse(item.arg);
+                }
+
+                if (arg.alfredworkflow) {
+                    variables = arg.alfredworkflow.variables || {};
+                }
+
+                return variables[key] || null;
+            } catch (e) {}
+        }
+
+        return null;
+    }
+
+    /**
+     * Get item variables
+     *
+     * As of Alfred 3.4.1 item variables are handled differently (properly). This method makes it easier to get the
+     * variables of an item without having to deal with different versions.
+     *
+     * @param {Object} item
+     * @return {Object} Item variables
+     */
+    getItemVariables(item: Object): Object {
+        if (semver.gte(this.alfredMeta.version, '3.4.1')) {
+            return item.variables || {};
+        } else if (item.arg) {
+            try {
+                let arg = {};
+
+                if (typeof item.arg === 'string') {
+                    arg = JSON.parse(item.arg);
+                }
+
+                if (arg.alfredworkflow) {
+                    return arg.alfredworkflow.variables || {};
+                }
+
+                return arg.variables || {};
+            } catch (e) {}
+        }
+
+        return {};
+    }
+
+    /**
      * Run a callback when first script argument matches keyword. Callback will have third argument as query parameter.
      * @example node index.js myaction "my query"
      * @param {string} keyword Action name
      * @param {Function} callback Callback to execute when query matches action name
-     * @type {Hugo}
+     * @return {Hugo}
      */
     action(keyword: string, callback: (query: string) => void): Hugo {
         let query: string = process.argv[2];
@@ -376,11 +496,9 @@ class Hugo {
                             title: `Workflow update available!`,
                             subtitle: `Version ${latest} is available. Current version: ${current}.`,
                             icon: this.workflowMeta.icon,
-                            arg: {
-                                arg: result.url,
-                                variables: {
-                                    task: 'wfUpdate'
-                                }
+                            arg: result.url,
+                            variables: {
+                                task: 'wfUpdate'
                             }
                         });
                     }

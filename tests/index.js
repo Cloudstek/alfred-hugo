@@ -27,5 +27,5 @@ test('alfred meta with invalid version', t => {
 
     // Check version number
     t.is(typeof h.alfredMeta, 'object');
-    t.is(h.alfredMeta.version, process.env.alfred_version);
+    t.is(h.alfredMeta.version, '3.0.0');
 });

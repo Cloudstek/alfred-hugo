@@ -149,6 +149,7 @@ test.serial('update notification item', async t => {
         updateSource: 'packal'
     });
 
+    // Check for updates
     await h.checkUpdates();
 
     // Check output buffer
@@ -159,17 +160,7 @@ test.serial('update notification item', async t => {
     let item = h.outputBuffer.items.pop();
 
     t.is(item.title, `Workflow update available!`);
-    t.truthy(item.arg);
-
-    // Check arg property
-    let arg = JSON.parse(item.arg);
-
-    t.is(typeof arg, 'object');
-    t.truthy(arg.alfredworkflow);
-    t.truthy(arg.alfredworkflow.arg);
-    t.deepEqual(arg.alfredworkflow.variables, {
-        task: 'wfUpdate'
-    });
+    t.is(h.getItemVariable(item, 'task'), 'wfUpdate');
 });
 
 /**

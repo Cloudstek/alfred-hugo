@@ -223,16 +223,44 @@ Item to add to the list of items which will be displayed. The only property that
 
 ###### Item variables
 
-One thing that is simplified in Hugo (and quite undocumented in Alfred) is the way to add variables to items using the `arg` property. Instead of supplying a `string` you can supply an `Object` to assign variables to an item instead of globally. Now when an item is activated it will set those environment variables during this session so you can use them throughout your Alfred workflow in other actions.
+~~One thing that is simplified in Hugo (and quite undocumented in Alfred) is the way to add variables to items using the `arg` property. Instead of supplying a `string` you can supply an `Object` to assign variables to an item instead of globally. Now when an item is activated it will set those environment variables during this session so you can use them throughout your Alfred workflow in other actions.~~
+
+Since [version 3.4.1](https://www.alfredapp.com/help/workflows/inputs/script-filter/json/#variables) Alfred now supports item and item modifier variables and have added documentation on the subject. You don't have to worry about what version of Alfred is running, Hugo takes care of that so you can use either syntax, though we prefer the new ​:smile:​.
+
+Old syntax:
 
 ```javascript
 {
     title: 'My item',
+    valid: true,
     arg: {
         arg: 'my argument',
         variables: {
             foo: 'bar',
             bleep: 'bloop'
+        }
+    }
+}
+```
+
+New (preferred) syntax:
+
+```javascript
+{
+    title: 'My item',
+    valid: true,
+    arg: 'my argument',
+    variables: {
+        foo: 'bar',
+        bleep: 'bloop'
+    },
+    mods: {
+        alt: {
+            valid: true,
+            arg: 'my alt argument',
+            variables: {
+                bar: 'foo'
+            }
         }
     }
 }
@@ -273,9 +301,35 @@ Type: `string` `Object`
 
 See the [Alfred documentation](https://www.alfredapp.com/help/workflows/inputs/script-filter/json/) for more info about session variables.
 
+#### Hugo.getVariable(key)
+
+Type: `string`
+
+Get the value of a session variable, see Hugo.addVariable for more info.
+
+##### key
+
+Type: `string`
+
 #### Hugo.addVariables(variables)
 
 ##### variables
+
+Type: `Object`
+
+#### Hugo.getVariables()
+
+Type: `Object`
+
+Get all the session variables, , see Hugo.addVariables for more info.
+
+#### Hugo.getItemVariables(item)
+
+Type: `Object`
+
+Get all the item variables without having to deal with version differences, see Hugo.addItem for more info.
+
+##### item
 
 Type: `Object`
 

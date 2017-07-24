@@ -57,7 +57,7 @@ test.serial('process file and cache it', t => {
         t.is(typeof file, 'string');
         t.true(file.length > 0);
         t.is(typeof hash, 'string');
-        t.true(file.length > 0);
+        t.true(hash.length > 0);
 
         cache.store(t.context.testData);
         cache.set('hello', 'world!');
