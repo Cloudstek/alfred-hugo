@@ -43,8 +43,6 @@ test.serial('process file and cache it', t => {
     const h = t.context.hugo;
     const tmpFile = tempy.file();
 
-    t.plan(7);
-
     // Create file
     fs.writeFileSync(tmpFile, 'Hello world!');
 
@@ -67,9 +65,7 @@ test.serial('process file and cache it', t => {
     let data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, Object.assign({}, t.context.testData, {
-        hello: 'world!'
-    }));
+    t.snapshot(data);
 
     // Listen to change event (which should not be emitted now)
     cachedFile.once('change', () => {
@@ -80,9 +76,7 @@ test.serial('process file and cache it', t => {
     data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, Object.assign({}, t.context.testData, {
-        hello: 'world!'
-    }));
+    t.snapshot(data);
 });
 
 test.serial('process file with no cache dir set', t => {
@@ -106,18 +100,18 @@ test.serial('process file with no cache dir set', t => {
     let data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, t.context.testData);
+    t.snapshot(data);
 
     // Listen to change event again (cache should be empty)
     cachedFile.once('change', cache => {
-        t.deepEqual(cache.contents, {});
+        t.snapshot(cache.contents);
     });
 
     // Fetch data again (should be empty as well as this time we didn't store anything after processing)
     data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, {});
+    t.snapshot(data);
 });
 
 test.serial('clear cache', async t => {
@@ -142,21 +136,21 @@ test.serial('clear cache', async t => {
     let data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, t.context.testData);
+    t.snapshot(data);
 
     // Clear cache
     await cachedFile.clearCache();
 
     // Listen to change event again (cache should be empty)
     cachedFile.once('change', cache => {
-        t.deepEqual(cache.contents, {});
+        t.snapshot(cache.contents);
     });
 
     // Fetch data again (should be empty)
     data = cachedFile.get();
 
     // Verify data
-    t.deepEqual(data, {});
+    t.snapshot(data);
 });
 
 test.serial('process non-existing file', t => {

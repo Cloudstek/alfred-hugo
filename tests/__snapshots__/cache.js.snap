@@ -1,0 +1,7 @@
+exports[`cleaning cache dir 1`] = `"{\"foo\":\"bar\"}"`;
+
+exports[`cleaning cache dir 2`] = `"{"foo":"bar"}"`;
+
+exports[`standard cache dir 1`] = `"{\"foo\":\"bar\"}"`;
+
+exports[`tmp cache dir 1`] = `"{\"foo\":\"bar\"}"`;

@@ -38,21 +38,7 @@ test('items only', t => {
     ]);
 
     // Assert output
-    t.deepEqual(h._outputBuffer, {
-        items: [
-            {
-                title: 'foo'
-            },
-            {
-                title: 'bar',
-                subtitle: 'foo'
-            },
-            {
-                title: 'boop',
-                subtitle: 'bleep'
-            }
-        ]
-    });
+    t.snapshot(h._outputBuffer);
 });
 
 /**
@@ -70,15 +56,7 @@ test('variables only', t => {
     });
 
     // Assert output
-    t.deepEqual(h._outputBuffer, {
-        variables: {
-            foo: 'bar',
-            bleep: 'bloop',
-            boop: {
-                tap: 'top'
-            }
-        }
-    });
+    t.snapshot(h._outputBuffer);
 });
 
 /**
@@ -93,16 +71,7 @@ test('variables and items combined', t => {
     });
 
     // Assert output
-    t.deepEqual(h._outputBuffer, {
-        variables: {
-            foo: 'bar'
-        },
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    t.snapshot(h._outputBuffer);
 });
 
 /**
@@ -112,7 +81,7 @@ test('items with variables', t => {
     const h = t.context.hugo;
 
     // Set Alfred version to 3.4.1 or later
-    process.env.alfred_version = '3.4.1';
+    process.env.alfred_version = '3.4.1'; // eslint-disable-line camelcase
 
     // Add items
     h.addItems([
@@ -169,49 +138,7 @@ test('items with variables', t => {
 
     // Assert output
     t.is(h.alfredMeta.version, '3.4.1');
-    t.deepEqual(h._outputBuffer, {
-        variables: {
-            bloop: 'bleep',
-            flooble: 'flab',
-            flabby: 'flop'
-        },
-        items: [
-            {
-                title: 'Test 1',
-                variables: {
-                    foo: 'bar'
-                }
-            },
-            {
-                title: 'Test 2',
-                arg: 'foobar',
-                variables: {
-                    bar: 'foo'
-                }
-            },
-            {
-                title: 'Test 3',
-                variables: {
-                    foo: 'bar'
-                }
-            },
-            {
-                title: 'Test 4',
-                arg: 'foobar',
-                variables: {
-                    bar: 'foo'
-                }
-            },
-            {
-                title: 'Test 5',
-                arg: 'foobar',
-                variables: {
-                    bar: 'foo',
-                    foo: 'bar'
-                }
-            }
-        ]
-    });
+    t.snapshot(h._outputBuffer);
 });
 
 /**
@@ -221,7 +148,7 @@ test('items with legacy variables (< 3.4.1)', t => {
     const h = t.context.hugo;
 
     // Set Alfred version to pre 3.4.1
-    process.env.alfred_version = '3.4.0';
+    process.env.alfred_version = '3.4.0'; // eslint-disable-line camelcase
 
     // Add items
     h.addItems([
@@ -278,69 +205,7 @@ test('items with legacy variables (< 3.4.1)', t => {
 
     // Assert output
     t.is(h.alfredMeta.version, '3.4.0');
-    t.deepEqual(h._outputBuffer, {
-        variables: {
-            bloop: 'bleep',
-            flooble: 'flab',
-            flabby: 'flop'
-        },
-        items: [
-            {
-                title: 'Test 1',
-                arg: JSON.stringify({
-                    alfredworkflow: {
-                        variables: {
-                            foo: 'bar'
-                        }
-                    }
-                })
-            },
-            {
-                title: 'Test 2',
-                arg: JSON.stringify({
-                    alfredworkflow: {
-                        arg: 'foobar',
-                        variables: {
-                            bar: 'foo'
-                        }
-                    }
-                })
-            },
-            {
-                title: 'Test 3',
-                arg: JSON.stringify({
-                    alfredworkflow: {
-                        variables: {
-                            foo: 'bar'
-                        }
-                    }
-                })
-            },
-            {
-                title: 'Test 4',
-                arg: JSON.stringify({
-                    alfredworkflow: {
-                        arg: 'foobar',
-                        variables: {
-                            bar: 'foo'
-                        }
-                    }
-                })
-            },
-            {
-                title: 'Test 5',
-                arg: JSON.stringify({
-                    alfredworkflow: {
-                        arg: 'foobar',
-                        variables: {
-                            bar: 'foo',
-                            foo: 'bar'
-                        }
-                    }
-                })
-            }
-        ]
-    });
+    t.snapshot(h._outputBuffer);
 });
 
 /**
@@ -357,18 +222,7 @@ test.cb('rerun parameter', t => {
 
         output = JSON.parse(output);
 
-        t.deepEqual(output, {
-            rerun: 1.4,
-            variables: {
-                foo: 'bar'
-            },
-            items: [
-                {
-                    title: 'foo'
-                }
-            ]
-        });
-
+        t.snapshot(output);
         t.end();
     });
 
@@ -397,16 +251,7 @@ test.cb('invalid rerun parameter', t => {
 
         // Output should not contain rerun
         t.falsy(output.rerun);
-        t.deepEqual(output, {
-            variables: {
-                foo: 'bar'
-            },
-            items: [
-                {
-                    title: 'foo'
-                }
-            ]
-        });
+        t.snapshot(output);
 
         t.end();
     });
@@ -449,11 +294,5 @@ test('invalid items', t => {
     });
 
     // Assert output
-    t.deepEqual(h._outputBuffer, {
-        items: [
-            {
-                title: 'foo'
-            }
-        ]
-    });
+    t.snapshot(h._outputBuffer);
 });
