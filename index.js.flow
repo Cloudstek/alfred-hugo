@@ -484,11 +484,8 @@ class Hugo {
                 // Display notification
                 if (semver.gt(latest, current)) {
                     if (result.checkedOnline === true && this._options.updateNotification === true) {
-                        notifier.notify({
-                            title: this.workflowMeta.name || 'Alfred',
-                            subtitle: `Workflow version ${latest} available. Current version: ${current}.`,
-                            sender: 'com.runningwithcrayons.Alfred-3',
-                            timeout: 10
+                        this.notify({
+                            message: `Workflow version ${latest} available. Current version: ${current}.`
                         });
                     }
                     if (this._options.updateItem === true) {
@@ -602,6 +599,39 @@ class Hugo {
 
         // Return results
         return fuse.search(query) || [];
+    }
+
+    /**
+     * Send a notification
+     *
+     * Notification title defaults to the Workflow name, or when not available to 'Alfred'. You can adjust all the options
+     * that node-notifier supports. Please see their documentation for available options.
+     *
+     * @see https://github.com/mikaelbr/node-notifier
+     * @param {Object} options Notification options
+     * @return {Promise} Notifier response
+     */
+    async notify(options: Object) {
+        return new Promise((resolve, reject) => {
+            let defaults = {
+                title: ('Alfred ' + this.workflowMeta.name).trim(),
+                sender: 'com.runningwithcrayons.Alfred-3',
+                contentImage: this.workflowMeta.icon
+            };
+
+            // Set options
+            options = Object.assign({}, defaults, options);
+
+            // Notify
+            notifier.notify(options, (err, response) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                resolve(response);
+            });
+        });
     }
 
     /**
