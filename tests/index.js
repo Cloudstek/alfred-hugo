@@ -23,9 +23,9 @@ test('alfred meta with invalid version', t => {
     const h = t.context.hugo;
 
     // Set alfred version
-    process.env.alfred_version = '3.0';
+    process.env.alfred_version = '3.0'; // eslint-disable-line camelcase
 
     // Check version number
     t.is(typeof h.alfredMeta, 'object');
-    t.is(h.alfredMeta.version, process.env.alfred_version);
+    t.is(h.alfredMeta.version, '3.0.0');
 });

@@ -48,9 +48,11 @@ test.serial('tmp cache dir', t => {
     // Check cache path
     t.is(path.resolve(path.join(os.tmpdir(), 'my.work.flow')), h.workflowMeta.cache);
 
-    // Set and get cache data
+    // Set cache data
     h.cache.set('test', t.context.testData);
-    t.deepEqual(h.cache.get('test'), t.context.testData);
+
+    // Assert cache data we just set
+    t.snapshot(h.cache.get('test'));
 });
 
 /**
@@ -62,9 +64,11 @@ test.serial('standard cache dir', t => {
     // Check cache path
     t.is(process.env.alfred_workflow_cache, h.workflowMeta.cache);
 
-    // Set and get cache data
+    // Set cache data
     h.cache.set('test', t.context.testData);
-    t.deepEqual(h.cache.get('test'), t.context.testData);
+
+    // Assert cache data we just set
+    t.snapshot(h.cache.get('test'));
 });
 
 /**
@@ -97,7 +101,7 @@ test.serial('cleaning cache dir', async t => {
 
     // Set cache data
     h.cache.set('test', t.context.testData);
-    t.deepEqual(h.cache.get('test'), t.context.testData);
+    t.snapshot(h.cache.get('test'));
 
     // Clear cache
     await h.clearCache();
@@ -112,12 +116,14 @@ test.serial('cleaning cache dir', async t => {
 
     // Set cache data
     h.cache.set('test', t.context.testData);
-    t.deepEqual(h.cache.get('test'), t.context.testData);
+
+    // Assert cache data we just set
+    t.snapshot(h.cache.get('test'));
 
     // Clear cache
     h.clearCacheSync();
 
-    // Check cache
+    // Assert cache is empty
     t.falsy(h.cache.get('test'));
 });
 

@@ -1,0 +1,15 @@
+exports[`invalid items 1`] = `"{"items":[{"title":"foo"}]}"`;
+
+exports[`invalid rerun parameter 1`] = `"{\"variables\":{\"foo\":\"bar\"},\"items\":[{\"title\":\"foo\"}]}"`;
+
+exports[`items only 1`] = `"{\"items\":[{\"title\":\"foo\"},{\"title\":\"bar\",\"subtitle\":\"foo\"},{\"title\":\"boop\",\"subtitle\":\"bleep\"}]}"`;
+
+exports[`items with legacy variables (< 3.4.1) 1`] = `"{\"items\":[{\"title\":\"Test 1\",\"arg\":\"{\\\"alfredworkflow\\\":{\\\"variables\\\":{\\\"foo\\\":\\\"bar\\\"}}}\"},{\"title\":\"Test 2\",\"arg\":\"{\\\"alfredworkflow\\\":{\\\"arg\\\":\\\"foobar\\\",\\\"variables\\\":{\\\"bar\\\":\\\"foo\\\"}}}\"},{\"title\":\"Test 3\",\"arg\":\"{\\\"alfredworkflow\\\":{\\\"variables\\\":{\\\"foo\\\":\\\"bar\\\"}}}\"},{\"title\":\"Test 4\",\"arg\":\"{\\\"alfredworkflow\\\":{\\\"arg\\\":\\\"foobar\\\",\\\"variables\\\":{\\\"bar\\\":\\\"foo\\\"}}}\"},{\"title\":\"Test 5\",\"arg\":\"{\\\"alfredworkflow\\\":{\\\"arg\\\":\\\"foobar\\\",\\\"variables\\\":{\\\"bar\\\":\\\"foo\\\",\\\"foo\\\":\\\"bar\\\"}}}\"}],\"variables\":{\"bloop\":\"bleep\",\"flooble\":\"flab\",\"flabby\":\"flop\"}}"`;
+
+exports[`items with variables 1`] = `"{\"items\":[{\"title\":\"Test 1\",\"variables\":{\"foo\":\"bar\"}},{\"title\":\"Test 2\",\"arg\":\"foobar\",\"variables\":{\"bar\":\"foo\"}},{\"title\":\"Test 3\",\"variables\":{\"foo\":\"bar\"}},{\"title\":\"Test 4\",\"arg\":\"foobar\",\"variables\":{\"bar\":\"foo\"}},{\"title\":\"Test 5\",\"variables\":{\"foo\":\"bar\",\"bar\":\"foo\"},\"arg\":\"foobar\"}],\"variables\":{\"bloop\":\"bleep\",\"flooble\":\"flab\",\"flabby\":\"flop\"}}"`;
+
+exports[`rerun parameter 1`] = `"{\"variables\":{\"foo\":\"bar\"},\"items\":[{\"title\":\"foo\"}],\"rerun\":1.4}"`;
+
+exports[`variables and items combined 1`] = `"{\"variables\":{\"foo\":\"bar\"},\"items\":[{\"title\":\"foo\"}]}"`;
+
+exports[`variables only 1`] = `"{\"variables\":{\"foo\":\"bar\",\"bleep\":\"bloop\",\"boop\":{\"tap\":\"top\"}}}"`;

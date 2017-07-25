@@ -6,7 +6,7 @@
  * A very easy way to split your code whilst not having to split it up in seperate files, keeping things nice and tidy.
  */
 
-const Hugo = require('alfred-hugo');
+const Hugo = require('../');
 
 // Aliens action (/usr/local/bin/node index.js aliens "$1")
 Hugo.action('aliens', query => {
