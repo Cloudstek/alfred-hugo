@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const EventEmitter = require('events').EventEmitter;
-const fs = require('fs-promise');
+const fs = require('fs-extra');
 const path = require('path');
 
 /**

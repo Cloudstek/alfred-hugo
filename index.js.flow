@@ -2,7 +2,7 @@
 
 const CacheConf = require('cache-conf');
 const Conf = require('conf');
-const fs = require('fs-promise');
+const fs = require('fs-extra');
 const Fuse = require('fuse.js');
 const got = require('got');
 const moment = require('moment');
