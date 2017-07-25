@@ -5,8 +5,7 @@
     "plugin:ava/recommended"
   ],
   "env": {
-    "node": true,
-    "browser": false
+    "node": true
   },
   "rules": {
     "indent": [
