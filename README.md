@@ -441,6 +441,16 @@ Type: `Object`
 
 [Fuse.js](http://fusejs.io) options, please see the [documentation](https://github.com/krisk/fuse#usage) for available options.
 
+#### Hugo.notification(options)
+
+Display a notification using [node-notifier](https://www.npmjs.com/package/node-notifier). For all available configuration options see their documentation.
+
+The title option defaults to the workflow name or 'Alfred' when not available for some reason.
+
+##### option
+
+Type: `Object`
+
 #### Hugo.rerun(value)
 
 > Scripts can be set to re-run automatically after an interval using the 'rerun' key with a value of 0.1 to 5.0 seconds. The script will only be re-run if the script filter is still active and the user hasn't changed the state of the filter by typing and triggering a re-run.
