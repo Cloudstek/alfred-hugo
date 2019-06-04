@@ -1,0 +1,14 @@
+{
+  "extension": [
+    ".js",
+    ".ts"
+  ],
+  "include": ["src/**/*.ts", "build/src/**/*.js"],
+  "reporter": [
+    "text",
+    "html"
+  ],
+  "cache": true,
+  "sourceMap": true,
+  "instrument": true
+}

@@ -31,8 +31,8 @@
 
 ## Prerequisites
 
-* NodeJS 4 or higher
-* Alfred 3 with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
+* NodeJS 8 or higher
+* Alfred 3.4.1+ with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
 
 ## Installing
 
