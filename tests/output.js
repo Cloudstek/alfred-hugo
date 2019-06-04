@@ -217,7 +217,7 @@ test.cb('rerun parameter', t => {
 
     t.plan(1);
 
-    const unhook = hookStd.stdout(output => {
+    const unhook = hookStd.stdout((output, unhook) => {
         unhook();
 
         output = JSON.parse(output);
@@ -244,7 +244,7 @@ test.cb('invalid rerun parameter', t => {
 
     t.plan(2);
 
-    const unhook = hookStd.stdout(output => {
+    const unhook = hookStd.stdout((output, unhook) => {
         unhook();
 
         output = JSON.parse(output);

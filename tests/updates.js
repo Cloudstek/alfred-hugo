@@ -159,7 +159,7 @@ test.serial('update notification item', async t => {
     // Check update item
     let item = h.outputBuffer.items.pop();
 
-    t.is(item.title, `Workflow update available!`);
+    t.is(item.title, 'Workflow update available!');
     t.is(h.getItemVariable(item, 'task'), 'wfUpdate');
 });
 

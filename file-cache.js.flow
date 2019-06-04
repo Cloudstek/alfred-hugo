@@ -26,7 +26,7 @@ class FileCacheStore {
 
     /**
      * Get cache contents
-     * @return {Object|Array.<Object>}
+     * @return {Object|Array.<Object>} Cache contents
      */
     get contents() {
         return this._contents;
@@ -34,8 +34,8 @@ class FileCacheStore {
 
     /**
      * Set cache contents to value
-     * @param {Object|Arrray.<Object>} value
-     * @return {FileCacheStore}
+     * @param {Object|Arrray.<Object>} value Value to store
+     * @return {FileCacheStore} Self
      */
     store(value: Object|Array<Object>): FileCacheStore {
         this._contents = value;
@@ -46,7 +46,7 @@ class FileCacheStore {
      * Set a cache value
      * @param {any} key Key
      * @param {any} value Value
-     * @return {FileCacheStore}
+     * @return {FileCacheStore} Self
      */
     set(key: any, value: any): FileCacheStore {
         this._contents[key] = value;
@@ -59,8 +59,11 @@ class FileCacheStore {
  */
 class FileCache extends EventEmitter {
     filePath: string;
+
     cacheName: string;
+
     cacheDir: string;
+
     isCleaning: boolean;
 
     /**

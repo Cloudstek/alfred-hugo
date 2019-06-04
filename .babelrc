@@ -3,12 +3,12 @@
   "compact": true,
   "plugins": [
     "transform-class-properties",
-    "transform-runtime"
+    "@babel/plugin-transform-runtime"
   ],
   "presets": [
-    "flow",
+    "@babel/preset-flow",
     [
-      "env",
+      "@babel/preset-env",
       {
         "targets": {
           "node": 4

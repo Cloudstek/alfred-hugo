@@ -15,7 +15,8 @@
         "SwitchCase": 1
       }
     ],
-    "flowtype-errors/show-errors": 2
+    "flowtype-errors/show-errors": 2,
+    "no-unused-vars": 1
   },
   "plugins": [
     "flowtype-errors",
