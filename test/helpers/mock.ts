@@ -65,7 +65,7 @@ export function npm(times: number = 1, pkg?: any, code: number = 200, latestVers
 }
 
 export function packal(times: number = 1, code: number = 200, filename: string = "appcast.xml") {
-    filename = path.join("test", "mocks", filename);
+    filename = path.join("test", "helpers", "mocks", filename);
 
     // Response body
     let body = "";
