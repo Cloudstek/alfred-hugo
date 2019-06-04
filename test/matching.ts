@@ -33,7 +33,7 @@ test.beforeEach((t) => {
 test("exact match", (t) => {
     const h = hugo();
 
-    const matches = h.search(t.context.items, "foo bar bleep", {
+    const matches = h.match(t.context.items, "foo bar bleep", {
         keys: ["subtitle"],
         threshold: 0,
     });
@@ -46,7 +46,7 @@ test("exact match", (t) => {
 test("exact match multiple keys", (t) => {
     const h = hugo();
 
-    const matches = h.search(t.context.items, "foo", {
+    const matches = h.match(t.context.items, "foo", {
         keys: ["title", "subtitle"],
     });
 
@@ -58,7 +58,7 @@ test("exact match multiple keys", (t) => {
 test("no matches", (t) => {
     const h = hugo();
 
-    const matches = h.search(t.context.items, "nope", {
+    const matches = h.match(t.context.items, "nope", {
         threshold: 0,
     });
 
@@ -69,7 +69,7 @@ test("no matches", (t) => {
 test("no query should return all items", (t) => {
     const h = hugo();
 
-    const matches = h.search(t.context.items, "");
+    const matches = h.match(t.context.items, "");
 
     t.true(Array.isArray(matches));
     t.is(matches.length, 5);

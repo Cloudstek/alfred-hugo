@@ -289,7 +289,7 @@ export class Hugo {
      * @param {string} query Search string
      * @param {Object} options fuse.js options
      */
-    public search(candidates: Item[], query: string, options?: Fuse.FuseOptions<any>): Item[] {
+    public match(candidates: Item[], query: string, options?: Fuse.FuseOptions<any>): Item[] {
         options = Object.assign({}, this.fuseDefaults, options || {});
 
         if (query.trim().length === 0) {
