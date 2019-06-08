@@ -1,6 +1,7 @@
 import { Cache } from "@cloudstek/cache";
 import { ICacheOptions } from "@cloudstek/cache";
 import fs from "fs-extra";
+import crypto from "crypto";
 import Fuse from "fuse.js";
 import Axios, { AxiosRequestConfig } from "axios";
 import moment from "moment";
@@ -8,10 +9,11 @@ import path from "path";
 import Semver from "semver";
 import NotificationCenter from "node-notifier/notifiers/notificationcenter";
 
+import { Action } from "./action";
 import { FileCache } from "./file-cache";
-import { AlfredMeta, FilterResults, HugoOptions, WorkflowMeta, UpdateSource, Item } from "./types";
 import { Updater } from "./updater";
 import * as utils from "./utils";
+import { AlfredMeta, FilterResults, HugoOptions, WorkflowMeta, UpdateSource, Item } from "./types";
 
 export class Hugo {
     public cache: Cache;
@@ -20,6 +22,7 @@ export class Hugo {
     public variables: { [key: string]: any } = {};
     public items: Item[] = [];
 
+    private actions: Action[];
     private fuseDefaults: Fuse.FuseOptions<any>;
     private options: HugoOptions;
     private updater: Updater;
@@ -29,7 +32,7 @@ export class Hugo {
         // Save options
         this.options = {
             checkUpdates: true,
-            updateInterval: moment.duration(1, "days"),
+            updateInterval: moment.duration(1, "day"),
             updateItem: true,
             updateNotification: true,
             updateSource: UpdateSource.NPM,
@@ -60,6 +63,9 @@ export class Hugo {
 
         // Notofier
         this.notifier = new NotificationCenter();
+
+        // Actions
+        this.actions = [];
     }
 
     /**
@@ -76,17 +82,15 @@ export class Hugo {
             if (!moment.isDuration(options.updateInterval)) {
                 options.updateInterval = moment.duration(options.updateInterval, "seconds");
             }
-
-            if (options.updateInterval.asSeconds() < 1) {
-                options.checkUpdates = false;
-                delete options.updateInterval;
-            }
         }
 
-        if (typeof options.updateSource === "string") {
-            if (!UpdateSource[options.updateSource as any]) {
-                throw new Error("Invalid update source.");
-            }
+        if (!options.updateInterval || (options.updateInterval as moment.Duration).asSeconds() < 1) {
+            options.checkUpdates = false;
+            delete options.updateInterval;
+        }
+
+        if (typeof options.updateSource !== "string" || !UpdateSource[options.updateSource.toLowerCase() as any]) {
+            throw new Error("Invalid update source.");
         }
 
         this.options = options;
@@ -196,15 +200,8 @@ export class Hugo {
     /**
      * Alfred user input
      */
-    public get input(): string {
-        // User input with the action name stripped off
-        // node index.js myaction "myquery"
-        if (process.argv.length > 3) {
-            return process.argv[3];
-        }
-
-        // User input when not inside an action
-        return process.argv[2] || "";
+    public get input(): string[] {
+        return process.argv.slice(2);
     }
 
     /**
@@ -227,18 +224,40 @@ export class Hugo {
     }
 
     /**
-     * Run a callback when first script argument matches keyword. Callback will have third argument as query parameter.
+     * Run a callback when first script argument matches keyword. Callback will have second argument as query parameter.
      *
      * @example node index.js myaction "my query"
      *
      * @param keyword Action name
      * @param callback Callback to execute when query matches action name
      */
-    public action(keyword: string, callback: (query: string) => void): Hugo {
-        const action = process.argv[2] || "";
+    public action(
+        keyword: string,
+        callback?: (query: string[]) => void,
+    ): Action {
+        const action = new Action(keyword, callback);
 
-        if (action === keyword) {
-            callback(process.argv[3] || "");
+        this.actions.push(action);
+
+        return action;
+    }
+
+    /**
+     * Find defined action from arguments and run it.
+     *
+     * @param args
+     *
+     * @return Hugo
+     */
+    public run(args?: string[]) {
+        if (!args) {
+            args = process.argv.slice(2);
+        }
+
+        for (const action of this.actions) {
+            if (action.run(args) === true) {
+                break;
+            }
         }
 
         return this;
@@ -300,7 +319,7 @@ export class Hugo {
         const fuse = new Fuse(candidates, options);
 
         // Return results
-        return fuse.search(query) || [];
+        return fuse.search(query);
     }
 
     /**
@@ -369,8 +388,13 @@ export class Hugo {
                         });
                     }
                     if (this.options.updateItem === true) {
+                        // Make sure update item is only added once
+                        this.items = this.items.filter((item) => {
+                            return item.title !== "Workflow update available!";
+                        });
+
                         this.items.push({
-                            title: `Workflow update available!`,
+                            title: "Workflow update available!",
                             subtitle: `Version ${latest} is available. Current version: ${current}.`,
                             icon: {
                                 path:  this.workflowMeta.icon || "",
@@ -401,10 +425,12 @@ export class Hugo {
      * @param ttl Cache lifetime (in seconds). Undefined to disable or false to enable indefinite caching.
      */
     public async fetch(url: string, options?: AxiosRequestConfig, ttl?: number | false) {
+        const urlHash = crypto.createHash("md5").update(url).digest("hex");
+
         // Check cache for a hit
         if (ttl && ttl > 0) {
-            if (this.cache.has(url)) {
-                return this.cache.get(url);
+            if (this.cache.has(urlHash)) {
+                return this.cache.get(urlHash);
             }
         }
 
@@ -412,7 +438,8 @@ export class Hugo {
         return Axios.get(url, options)
             .then((response) => {
                 if (ttl && ttl > 0) {
-                    this.cache.set(url, response.data, ttl);
+                    this.cache.set(urlHash, response.data, ttl);
+                    this.cache.commit();
                 }
 
                 return response.data;

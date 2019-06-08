@@ -3,7 +3,9 @@ import semver from "semver";
 import nock from "nock";
 import readPkg from "read-pkg";
 
-import { updater } from "../helpers/init";
+import { UpdateSource } from "../../src";
+
+import { updater, hugo } from "../helpers/init";
 import { TestContext } from "../helpers/types";
 import * as mock from "../helpers/mock";
 
@@ -13,11 +15,54 @@ test.beforeEach(() => {
     mock.date();
 });
 
+test.serial("check with valid update source NPM", async (t) => {
+    // Mock requests
+    mock.npm(5);
+
+    await t.notThrowsAsync(async () => {
+        const h = hugo({
+            updateSource: "npm",
+            updateNotification: false,
+        });
+
+        return h.checkUpdates();
+    });
+
+    await t.notThrowsAsync(async () => {
+        const h = hugo({
+            updateSource: "NPM",
+            updateNotification: false,
+        });
+
+        return h.checkUpdates();
+    });
+
+    await t.notThrowsAsync(async () => {
+        const h = hugo({
+            updateSource: UpdateSource.NPM,
+            updateNotification: false,
+        });
+
+        return h.checkUpdates();
+    });
+
+    await t.notThrowsAsync(async () => {
+        return updater().checkUpdates("npm");
+    });
+
+    await t.notThrowsAsync(async () => {
+        return updater().checkUpdates("NPM");
+    });
+});
+
 test.serial("check for updates uncached", async (t) => {
     const u = updater();
 
+    // Mock request
+    mock.npm(1);
+
+    // Package
     const pkg = readPkg.sync();
-    const request = mock.npm();
 
     const update = await u.checkUpdates("npm");
 
@@ -29,17 +74,19 @@ test.serial("check for updates uncached", async (t) => {
     t.is(update.version, semver.parse(pkg.version).inc("major").toString());
     t.is(update.url, `https://www.npmjs.com/package/${pkg.name}`);
     t.true(update.checkedOnline);
-    t.true(request.isDone());
 });
 
 test.serial("check for updates uncached with custom package.json", async (t) => {
     const u = updater();
 
+    // Package
     const pkg = {
         name: "alfred-my-workflow",
         version: "1.0.0",
     };
-    const request = mock.npm(1, pkg);
+
+    // Mock request
+    mock.npm(1, pkg);
 
     const update = await u.checkUpdates("npm", pkg);
 
@@ -51,14 +98,16 @@ test.serial("check for updates uncached with custom package.json", async (t) => 
     t.is(update.version, "2.0.0");
     t.is(update.url, `https://www.npmjs.com/package/${pkg.name}`);
     t.true(update.checkedOnline);
-    t.true(request.isDone());
 });
 
 test.serial("check for updates cached", async (t) => {
     const u = updater();
 
+    // Mock requests
+    mock.npm(2);
+
+    // Package
     const pkg = readPkg.sync();
-    const request = mock.npm(2);
 
     // Check for updates
     let update = await u.checkUpdates("npm");
@@ -71,7 +120,6 @@ test.serial("check for updates cached", async (t) => {
     t.is(update.version, semver.parse(pkg.version).inc("major").toString());
     t.is(update.url, `https://www.npmjs.com/package/${pkg.name}`);
     t.true(update.checkedOnline);
-    t.is(request.pendingMocks().length, 1);
 
     // Forward time
     mock.forwardTime(30, "minutes");
@@ -85,7 +133,6 @@ test.serial("check for updates cached", async (t) => {
     }
 
     t.false(update.checkedOnline);
-    t.is(request.pendingMocks().length, 1);
 
     // Forward time
     mock.forwardTime(30, "minutes");
@@ -99,7 +146,6 @@ test.serial("check for updates cached", async (t) => {
     }
 
     t.true(update.checkedOnline);
-    t.true(request.isDone());
 });
 
 test.serial("check for updates cached with custom package.json", async (t) => {
@@ -109,7 +155,9 @@ test.serial("check for updates cached with custom package.json", async (t) => {
         name: "alfred-my-workflow",
         version: "1.0.0",
     };
-    const request = mock.npm(2, pkg);
+
+    // Mock requests
+    mock.npm(2, pkg);
 
     // Check for updates
     let update = await u.checkUpdates("npm", pkg);
@@ -122,7 +170,7 @@ test.serial("check for updates cached with custom package.json", async (t) => {
     t.is(update.version, "2.0.0");
     t.is(update.url, `https://www.npmjs.com/package/${pkg.name}`);
     t.true(update.checkedOnline);
-    t.is(request.pendingMocks().length, 1);
+    t.is(nock.pendingMocks().length, 1);
 
     // Forward time
     mock.forwardTime(30, "minutes");
@@ -136,7 +184,7 @@ test.serial("check for updates cached with custom package.json", async (t) => {
     }
 
     t.false(update.checkedOnline);
-    t.is(request.pendingMocks().length, 1);
+    t.is(nock.pendingMocks().length, 1);
 
     // Forward time
     mock.forwardTime(30, "minutes");
@@ -150,7 +198,6 @@ test.serial("check for updates cached with custom package.json", async (t) => {
     }
 
     t.true(update.checkedOnline);
-    t.true(request.isDone());
 });
 
 test("check for updates with no package name set", async (t) => {
@@ -179,12 +226,11 @@ test.serial("check for updates with unpublished package", async (t) => {
     const pkg = readPkg.sync();
 
     // Mock request
-    const request = mock.npm(1, pkg, 404);
+    mock.npm(1, pkg, 404);
 
     const update = await u.checkUpdates("npm");
 
     t.is(typeof update, "undefined");
-    t.true(request.isDone());
 });
 
 test.serial("check for updates with unpublished package from custom package.json", async (t) => {
@@ -196,12 +242,11 @@ test.serial("check for updates with unpublished package from custom package.json
     };
 
     // Mock request
-    const request = mock.npm(1, pkg, 404);
+    mock.npm(1, pkg, 404);
 
     const update = await u.checkUpdates("npm", pkg);
 
     t.is(typeof update, "undefined");
-    t.true(request.isDone());
 });
 
 test.serial("check for updates with package without latest dist-tag", async (t) => {
@@ -210,9 +255,8 @@ test.serial("check for updates with package without latest dist-tag", async (t) 
     const pkg = readPkg.sync();
 
     // Mock request
-    const request = nock("https://registry.npmjs.org")
+    nock("https://registry.npmjs.org")
         .get("/" + pkg.name)
-        .once()
         .reply(200, JSON.stringify({
             "name": pkg.name,
             "dist-tags": {},
@@ -231,8 +275,6 @@ test.serial("check for updates with package without latest dist-tag", async (t) 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm");
     }, "No latest version found in response.");
-
-    t.true(request.isDone());
 });
 
 test.serial("check for updates with package without latest dist-tag from custom package.json", async (t) => {
@@ -244,13 +286,11 @@ test.serial("check for updates with package without latest dist-tag from custom 
     };
 
     // Mock request
-    const request = mock.npm(1, pkg, 200, null);
+    mock.npm(1, pkg, 200, null);
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm", pkg);
     }, "No latest version found in response.");
-
-    t.true(request.isDone());
 });
 
 test.serial("check for updates when invalid version is returned", async (t) => {
@@ -259,13 +299,17 @@ test.serial("check for updates when invalid version is returned", async (t) => {
     const pkg = readPkg.sync();
 
     // Mock request
-    const request = mock.npm(1, pkg, 200, "foobar");
+    mock.npm(1, pkg, 200, "foobar");
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm");
     }, "Invalid version in response.");
+});
 
-    t.true(request.isDone());
+test.afterEach((t) => {
+    if (!nock.isDone()) {
+        t.fail("Not all requests were performed.");
+    }
 });
 
 test.afterEach.always(() => {

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import path from "path";
 import moment from "moment";
 import fs from "fs-extra";
+import nock from "nock";
 
 import { Updater, Hugo, HugoOptions } from "../../src";
 
@@ -24,11 +25,23 @@ export function setAlfredEnv() {
 export function hugo(options?: HugoOptions) {
     setAlfredEnv();
 
+    // Disable real HTTP requests with nock
+    nock.disableNetConnect();
+
+    if (!options) {
+        options = {
+            checkUpdates: false,
+        };
+    }
+
     return new Hugo(options);
 }
 
 export function updater(cacheTtl?: number | moment.Duration) {
     setAlfredEnv();
+
+    // Disable real HTTP requests with nock
+    nock.disableNetConnect();
 
     const cache = new Cache({
         dir: process.env.alfred_workflow_cache,

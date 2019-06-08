@@ -97,29 +97,23 @@ test("test reset", (t) => {
     t.falsy(h.rerun);
 });
 
-test("input without action", (t) => {
+test("input with no actions", (t) => {
     process.argv = [
         "node",
         "index.js",
-        "foobar",
+        "foo",
+        "bar",
+        "hello",
+        "world",
     ];
 
     const h = hugo();
 
-    t.is(h.input, "foobar");
-});
-
-test("input with action", (t) => {
-    process.argv = [
-        "node",
-        "index.js",
-        "myaction",
-        "foobar",
-    ];
-
-    const h = hugo();
-
-    t.is(h.input, "foobar");
+    t.is(h.input.length, 4);
+    t.is(h.input[0], "foo");
+    t.is(h.input[1], "bar");
+    t.is(h.input[2], "hello");
+    t.is(h.input[3], "world");
 });
 
 test("input with no input", (t) => {
@@ -130,7 +124,7 @@ test("input with no input", (t) => {
 
     const h = hugo();
 
-    t.is(h.input, "");
+    t.is(h.input.length, 0);
 });
 
 test("notify", async (t) => {

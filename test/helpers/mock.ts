@@ -15,7 +15,7 @@ export function forwardTime(amount?: DurationInputArg1, unit?: DurationInputArg2
     mockdate.set(moment.utc().add(amount, unit));
 }
 
-export function npm(times: number = 1, pkg?: any, code: number = 200, latestVersion?: string) {
+export function npm(times: number, pkg?: any, code: number = 200, latestVersion?: string) {
     pkg = pkg || readPkg.sync();
 
     if (latestVersion !== null) {
@@ -58,13 +58,28 @@ export function npm(times: number = 1, pkg?: any, code: number = 200, latestVers
     }
 
     // Mock requests
-    return nock("https://registry.npmjs.org")
-        .get("/" + pkg.name)
-        .times(times)
-        .reply(code, body);
+    const url = "https://registry.npmjs.org";
+    const urlPath = "/" + pkg.name;
+
+    if (times >= 0) {
+        for (let i = 0; i < times; i++) {
+            nock(url)
+                .get(urlPath)
+                .reply(code, body)
+            ;
+        }
+
+        return;
+    }
+
+    nock(url)
+        .persist()
+        .get(urlPath)
+        .reply(code, body)
+    ;
 }
 
-export function packal(times: number = 1, code: number = 200, filename: string = "appcast.xml") {
+export function packal(times: number, code: number = 200, filename: string = "appcast.xml") {
     filename = path.join("test", "helpers", "mocks", filename);
 
     // Response body
@@ -74,10 +89,26 @@ export function packal(times: number = 1, code: number = 200, filename: string =
         body = fs.readFileSync(filename, { encoding: "utf8" });
     }
 
-    return nock("https://github.com")
-        .get("/packal/repository/blob/master/my.work.flow/appcast.xml")
-        .times(times)
-        .reply(code, body);
+    // Mock requests
+    const url = "https://github.com";
+    const urlPath = "/packal/repository/blob/master/my.work.flow/appcast.xml";
+
+    if (times >= 0) {
+        for (let i = 0; i < times; i++) {
+            nock(url)
+                .get(urlPath)
+                .reply(code, body)
+            ;
+        }
+
+        return;
+    }
+
+    nock(url)
+        .persist()
+        .get(urlPath)
+        .reply(code, body)
+    ;
 }
 
 export function file() {
