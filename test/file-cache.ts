@@ -16,12 +16,9 @@ test.serial("process file and cache it", (t) => {
     const cachedFile = h.cacheFile(tmpFile);
 
     // Listen to change event to process data
-    cachedFile.once("change", (cache, file, hash) => {
+    cachedFile.once("change", (cache, file) => {
         t.is(cache.constructor.name, "Cache");
-        t.is(typeof file, "string");
-        t.true(file.length > 0);
-        t.is(typeof hash, "string");
-        t.true(hash.length > 0);
+        t.is("Hello world!", file);
 
         cache.set("hello", "world!");
     });
@@ -32,7 +29,6 @@ test.serial("process file and cache it", (t) => {
     // Verify data
     t.is(typeof data, "object");
     t.is(data.hello, "world!");
-    t.true(data.hash.length > 0);
 
     // Listen to change event (which should not be emitted now)
     cachedFile.once("change", () => {
@@ -45,12 +41,9 @@ test.serial("process file and cache it", (t) => {
     cachedFile.removeAllListeners();
 
     // Listen to change event to process data
-    cachedFile.once("change", (cache, file, hash) => {
+    cachedFile.once("change", (cache, file) => {
         t.is(cache.constructor.name, "Cache");
-        t.is(typeof file, "string");
-        t.true(file.length > 0);
-        t.is(typeof hash, "string");
-        t.true(hash.length > 0);
+        t.is("Foobar", file);
 
         cache.set("foo", "bar");
     });
@@ -64,7 +57,6 @@ test.serial("process file and cache it", (t) => {
     // Verify data
     t.is(typeof data, "object");
     t.is(data.foo, "bar");
-    t.true(data.hash.length > 0);
 });
 
 test.serial("process non-existing file", (t) => {

@@ -35,22 +35,22 @@ export class FileCache extends EventEmitter {
 
     /**
      * Get (cached) contents.
+     *
+     * Emits the "change" event with the cache instance, file and hash of that file when the file has been changed
+     * or expired from the cache.
      */
     public get() {
         if (utils.fileExists(this.filePath) === false) {
             return null;
         }
 
-        // Read file
-        const file = fs.readFileSync(this.filePath, "utf8");
+        // Get file fstat
+        const stat = fs.statSync(this.filePath);
 
-        // Calculate file hash
-        const hash = Crypto.createHash("sha1").update(file, "utf8").digest("hex");
+        if (this.cache.has("mtime") === false || this.cache.get("mtime") !== stat.mtimeMs) {
+            this.emit("change", this.cache, fs.readFileSync(this.filePath, "utf8"));
 
-        if (this.cache.has("hash") === false || this.cache.get("hash") !== hash) {
-            this.emit("change", this.cache, file, hash);
-
-            this.cache.set("hash", hash);
+            this.cache.set("mtime", stat.mtimeMs);
             this.cache.commit();
 
             return this.cache.all();
