@@ -31,7 +31,7 @@ export interface WorkflowMeta {
     bundleId?: string;
     data?: string;
     cache?: string;
-    icon?: string;
+    icon: string;
 }
 
 export interface AlfredMeta {
