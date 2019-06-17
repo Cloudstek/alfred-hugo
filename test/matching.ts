@@ -17,6 +17,7 @@ test.beforeEach((t) => {
         },
         {
             title: "Eep",
+            match: "Abra",
             subtitle: "eep foo blep",
         },
         {
@@ -31,6 +32,23 @@ test.beforeEach((t) => {
 });
 
 test("exact match", (t) => {
+    const h = hugo();
+
+    const matches = h.match(t.context.items, "Abra", {
+        threshold: 0,
+        shouldSort: false,
+    });
+
+    t.true(Array.isArray(matches));
+
+    // Should match both item with match property as well as title property
+    // See https://www.alfredapp.com/help/workflows/inputs/script-filter/json/#match
+    t.is(matches.length, 2);
+    t.deepEqual(matches[0], t.context.items[2]);
+    t.deepEqual(matches[1], t.context.items[4]);
+});
+
+test("exact match by single key", (t) => {
     const h = hugo();
 
     const matches = h.match(t.context.items, "foo bar bleep", {

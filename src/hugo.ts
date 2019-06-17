@@ -42,7 +42,7 @@ export class Hugo {
 
         // Set defaults for FuseJS
         this.fuseDefaults = {
-            keys: ["title"],
+            keys: ["match"],
             threshold: 0.4,
         };
 
@@ -315,6 +315,17 @@ export class Hugo {
             return candidates;
         }
 
+        // Set match attribute to title when missing to mimic Alfred matching behaviour
+        if (options.keys.indexOf("match") >= 0) {
+            candidates = candidates.map((candidate) => {
+                if (!candidate.match) {
+                    candidate.match = candidate.title;
+                }
+
+                return candidate;
+            });
+        }
+
         // Create fuse.js fuzzy search object
         const fuse = new Fuse(candidates, options);
 
@@ -397,7 +408,7 @@ export class Hugo {
                             title: "Workflow update available!",
                             subtitle: `Version ${latest} is available. Current version: ${current}.`,
                             icon: {
-                                path:  this.workflowMeta.icon || "",
+                                path:  this.workflowMeta.icon,
                             },
                             arg: result.url,
                             variables: {
