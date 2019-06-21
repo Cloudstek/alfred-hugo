@@ -31,6 +31,7 @@
     "@types/semver": "^6.0.0",
     "@types/sinon": "^7.0.12",
     "ava": "^2.0.0",
+    "coveralls": "^3.0.4",
     "del-cli": "^2.0.0",
     "mockdate": "^2.0.2",
     "nock": "^10.0.6",
