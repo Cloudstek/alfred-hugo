@@ -101,6 +101,7 @@ test.serial("update item only", async (t) => {
 test.serial("check update item", async (t) => {
     const h = hugo({
         updateSource: "packal",
+        updateNotification: false,
     });
 
     // Mock request

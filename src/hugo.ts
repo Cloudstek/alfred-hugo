@@ -62,7 +62,9 @@ export class Hugo {
         this.updater = new Updater(this.cache, this.options.updateInterval);
 
         // Notofier
-        this.notifier = new NotificationCenter();
+        this.notifier = new NotificationCenter({
+            withFallback: true,
+        });
 
         // Actions
         this.actions = [];

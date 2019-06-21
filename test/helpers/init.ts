@@ -1,6 +1,7 @@
 import { Cache } from "@cloudstek/cache";
 import crypto from "crypto";
 import path from "path";
+import os from "os";
 import moment from "moment";
 import fs from "fs-extra";
 import nock from "nock";

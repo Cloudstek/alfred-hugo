@@ -2,6 +2,7 @@ import test from "ava";
 import moment from "moment";
 import fs from "fs-extra";
 import path from "path";
+import os from "os";
 
 import * as utils from "../src/utils";
 
@@ -128,6 +129,11 @@ test("input with no input", (t) => {
 });
 
 test("notify", async (t) => {
+    if (os.platform() !== "darwin") {
+        t.pass("Notifications only work on MacOS.");
+        return;
+    }
+
     const h = hugo();
 
     await t.notThrowsAsync(async () => {
@@ -140,6 +146,11 @@ test("notify", async (t) => {
 });
 
 test("notify with missing options", async (t) => {
+    if (os.platform() !== "darwin") {
+        t.pass("Notifications only work on MacOS.");
+        return;
+    }
+
     const h = hugo();
 
     await t.throwsAsync(async () => {
