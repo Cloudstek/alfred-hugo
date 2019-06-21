@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "2.0.0",
+  "version": "2.0.0-beta.0",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
@@ -9,6 +9,10 @@
   "repository": "Cloudstek/alfred-hugo",
   "bugs": "https://github.com/Cloudstek/alfred-hugo/issues",
   "main": "dist/main.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "keywords": [
     "alfred",
     "workflow",
