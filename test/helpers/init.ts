@@ -4,6 +4,7 @@ import path from "path";
 import moment from "moment";
 import fs from "fs-extra";
 import nock from "nock";
+import sinon from "sinon";
 
 import { Updater, Hugo, HugoOptions } from "../../src";
 
@@ -34,7 +35,22 @@ export function hugo(options?: HugoOptions) {
         };
     }
 
-    return new Hugo(options);
+    // Init hugo
+    const h = new Hugo(options);
+
+    // Init another Hugo that has no stubs and stuff
+    const originalHugo = new Hugo(options);
+
+    sinon.stub(h, "workflowMeta").get(() => {
+        const workflowMeta = originalHugo.workflowMeta;
+
+        // Give workflow icon a fixed path
+        workflowMeta.icon = "/foo/bar/icon.png";
+
+        return workflowMeta;
+    });
+
+    return h;
 }
 
 export function updater(cacheTtl?: number | moment.Duration) {
