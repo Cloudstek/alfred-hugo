@@ -5,13 +5,14 @@ import { EventEmitter } from "events";
 import fs from "fs-extra";
 
 import * as utils from "./utils";
+import { FileCacheEventEmitter } from "./types";
 
 /**
  * File cache.
  *
  * This allows you to read and process the data once, then storing it in cache until the file has changed again.
  */
-export class FileCache extends EventEmitter {
+export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) {
     private filePath: string;
     private cache: Cache;
 
