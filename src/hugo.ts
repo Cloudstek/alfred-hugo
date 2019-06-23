@@ -152,7 +152,7 @@ export class Hugo {
     /**
      * Alfred theme
      */
-    public get alfredTheme(): object {
+    public get alfredTheme(): any {
         const themeFile = this.alfredMeta.themeFile;
 
         if (!themeFile || utils.fileExists(themeFile) === false) {
