@@ -9,7 +9,7 @@
     "declarationMap": false,
     "sourceMap": true,
     "esModuleInterop": true,
-    "outDir": "build",
+    "outDir": "build"
   },
   "include": [
     "src/**/*",

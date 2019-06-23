@@ -1,5 +1,4 @@
 {
-    "defaultSeverity": "error",
     "extends": [
         "tslint:recommended"
     ],
@@ -9,7 +8,11 @@
       "no-console": false,
       "interface-name": false,
       "ordered-imports": false,
-      "variable-name": false
+      "variable-name": false,
+      "max-line-length": {
+        "options": { "limit": 120 },
+        "severity": "warning"
+      }
     },
     "rulesDirectory": []
 }
