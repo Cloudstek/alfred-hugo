@@ -1,6 +1,6 @@
 # ![Hugo](https://cdn.rawgit.com/cloudstek/alfred-hugo/master/media/logo-hugo.svg)
 
-![CircleCI](https://img.shields.io/circleci/build/github/Cloudstek/alfred-hugo.svg) [![Coverage Status](https://coveralls.io/repos/github/Cloudstek/alfred-hugo/badge.svg?branch=master)](https://coveralls.io/github/Cloudstek/alfred-hugo?branch=master) [![Open Issues](https://img.shields.io/github/issues/Cloudstek/alfred-hugo.svg)](https://github.com/Cloudstek/alfred-hugo/issues) ![npm](https://img.shields.io/npm/dt/alfred-hugo.svg) ![GitHub](https://img.shields.io/github/license/Cloudstek/alfred-hugo.svg) ![GitHub stars](https://img.shields.io/github/stars/Cloudstek/alfred-hugo.svg)
+[![CircleCI](https://img.shields.io/circleci/build/github/Cloudstek/alfred-hugo.svg)](https://circleci.com/gh/Cloudstek/alfred-hugo) [![Coverage Status](https://coveralls.io/repos/github/Cloudstek/alfred-hugo/badge.svg?branch=master)](https://coveralls.io/github/Cloudstek/alfred-hugo?branch=master) [![Open Issues](https://img.shields.io/github/issues/Cloudstek/alfred-hugo.svg)](https://github.com/Cloudstek/alfred-hugo/issues) ![npm](https://img.shields.io/npm/dt/alfred-hugo.svg) ![GitHub](https://img.shields.io/github/license/Cloudstek/alfred-hugo.svg) ![GitHub stars](https://img.shields.io/github/stars/Cloudstek/alfred-hugo.svg)
 
 Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script-filter/) framework for your Alfred workflows. It can handle fetching and caching data, configuration storage, checking for updates and much much more. But I suppose you can use it for other purposes in your workflow as well :man_shrugging:
 
@@ -18,7 +18,7 @@ Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script
 ### Prerequisites
 
 * NodeJS 8 or higher
-* Alfred 3.4.1+ with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
+* Alfred 4 with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
 
 ### Installing
 
