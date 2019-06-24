@@ -4,17 +4,18 @@ import path from "path";
 
 import { hugo } from "../helpers/init";
 
-test("existing theme", (t) => {
+test.serial("existing theme", (t) => {
     const h = hugo();
 
-    process.env.alfred_theme = "default";
+    process.env.alfred_theme = "foo";
 
-    const themeFilePath = path.resolve(process.env.HOME, "Library", "Application Support", "Alfred 3",
-        "Alfred.alfredpreferences", "themes", process.env.alfred_theme, "theme.json");
+    const themeFilePath = path.resolve(process.env.alfred_preferences, "themes", process.env.alfred_theme, "theme.json");
 
     fs.ensureFileSync(themeFilePath);
     fs.writeJsonSync(themeFilePath, {
-        foo: "bar",
+        alfredtheme: {
+            foo: "bar",
+        },
     });
 
     t.is(typeof h.alfredTheme, "object");
@@ -23,12 +24,11 @@ test("existing theme", (t) => {
     });
 });
 
-test("non-existing theme", (t) => {
+test.serial("non-existing theme", (t) => {
     const h = hugo();
 
     // Valid theme name but directory doesn't exist.
-    process.env.alfred_theme = "default";
+    process.env.alfred_theme = "foo";
 
-    t.is(typeof h.alfredTheme, "object");
-    t.deepEqual(h.alfredTheme, {});
+    t.is(h.alfredTheme, null);
 });

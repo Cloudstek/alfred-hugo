@@ -8,6 +8,8 @@ There are two ways to notify the user of an available update, with a notificatio
 
 When the item is activated, it will set a variable named `task` (`{var:task}` in Alfred) with the value `wfUpdate`. The argument is set to the URL where the update can be found, either on Packal or NPM depending on `updateSource`. You can link the output to an [Open URL](https://www.alfredapp.com/help/workflows/actions/open-url/) action so a browser opens when the user selects the update item.
 
+See [alfred-atom](https://github.com/Cloudstek/alfred-atom) for example which uses the Conditional element in Alfred 4.
+
 ![Opening a browser for updates](../media/update-action.png)
 
 ### Examples

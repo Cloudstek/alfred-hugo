@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
@@ -8,11 +8,15 @@
   ],
   "repository": "Cloudstek/alfred-hugo",
   "bugs": "https://github.com/Cloudstek/alfred-hugo/issues",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "/dist"
   ],
+  "bin": {
+    "hugo-link": "./dist/bin/link.js",
+    "hugo-unlink": "./dist/bin/unlink.js"
+  },
   "keywords": [
     "alfred",
     "workflow",
@@ -26,15 +30,15 @@
   "license": "BSD-2-Clause",
   "devDependencies": {
     "@types/fs-extra": "^7.0.0",
-    "@types/got": "^9.4.4",
+    "@types/glob": "^7.1.1",
     "@types/mockdate": "^2.0.0",
     "@types/nock": "^10.0.3",
     "@types/node": "^12.0.2",
-    "@types/node-notifier": "^5.4.0",
     "@types/read-pkg": "^4.0.0",
     "@types/semver": "^6.0.0",
     "@types/sinon": "^7.0.12",
     "ava": "^2.0.0",
+    "bplist-creator": "^0.0.8",
     "coveralls": "^3.0.4",
     "del-cli": "^2.0.0",
     "mockdate": "^2.0.2",
@@ -42,19 +46,25 @@
     "npm-run-all": "^4.1.5",
     "nyc": "^14.1.1",
     "sinon": "^7.3.2",
-    "tslint": "^5.16.0",
+    "tslint": "^5.18.0",
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "@types/node-notifier": "^5.4.0",
     "@cloudstek/cache": "^1.0.1",
-    "alfred-link": "^0.3.0",
     "axios": "^0.19.0",
+    "bplist-parser": "^0.1.1",
+    "del": "^4.1.1",
     "fs-extra": "^8.0.1",
     "fuse.js": "^3.4.4",
+    "glob": "^7.1.4",
     "moment": "^2.17.1",
     "node-notifier": "^5.0.2",
-    "read-pkg": "^5.1.1",
-    "semver": "^6.1.0"
+    "plist": "^3.0.1",
+    "read-pkg-up": "^6.0.0",
+    "semver": "^6.1.0",
+    "strict-event-emitter-types": "^2.0.0",
+    "untildify": "^4.0.0"
   },
   "engines": {
     "node": ">=8"

@@ -1,13 +1,12 @@
-import { Cache } from "@cloudstek/cache";
-import { ICacheOptions } from "@cloudstek/cache";
 import fs from "fs-extra";
 import crypto from "crypto";
 import Fuse from "fuse.js";
 import Axios, { AxiosRequestConfig } from "axios";
 import moment from "moment";
 import path from "path";
-import Semver from "semver";
+import semver from "semver";
 import NotificationCenter from "node-notifier/notifiers/notificationcenter";
+import { Cache, ICacheOptions } from "@cloudstek/cache";
 
 import { Action } from "./action";
 import { FileCache } from "./file-cache";
@@ -106,7 +105,7 @@ export class Hugo {
      * @return
      */
     public get alfredMeta(): AlfredMeta {
-        let version = Semver.valid(Semver.coerce(process.env.alfred_version));
+        let version = semver.valid(semver.coerce(process.env.alfred_version));
 
         // Check if version is valid
         if (version === null) {
@@ -120,7 +119,7 @@ export class Hugo {
         // Gather environment information
         const data: AlfredMeta = {
             debug: process.env.alfred_debug === "1",
-            preferences: process.env.alfred_preferences,
+            preferences: process.env.alfred_preferences || utils.resolveAlfredPrefs(version),
             preferencesLocalHash: process.env.alfred_preferences_localhash,
             theme: process.env.alfred_theme,
             themeBackground: process.env.alfred_theme_background,
@@ -131,10 +130,7 @@ export class Hugo {
 
         // Find and load curent Alfred theme file
         if (process.env.HOME && data.theme) {
-            const homedir: string = process.env.HOME;
-
-            const themeFile = path.resolve(homedir, "Library", "Application Support", "Alfred " + Semver.major(version),
-                "Alfred.alfredpreferences", "themes", data.theme, "theme.json");
+            const themeFile = path.resolve(data.preferences, "themes", data.theme, "theme.json");
 
             try {
                 fs.statSync(themeFile);
@@ -152,21 +148,23 @@ export class Hugo {
     /**
      * Alfred theme
      */
-    public get alfredTheme(): object {
+    public get alfredTheme(): any | null {
         const themeFile = this.alfredMeta.themeFile;
 
         if (!themeFile || utils.fileExists(themeFile) === false) {
-            return {};
+            return null;
         }
 
-        return fs.readJsonSync(themeFile);
+        const theme = fs.readJsonSync(themeFile);
+
+        return theme.alfredtheme;
     }
 
     /**
      * Workflow metadata
      */
     public get workflowMeta(): WorkflowMeta {
-        let version = Semver.valid(Semver.coerce(process.env.alfred_workflow_version));
+        let version = semver.valid(semver.coerce(process.env.alfred_workflow_version));
 
         // Check if version is valid
         if (version === null) {
@@ -345,7 +343,7 @@ export class Hugo {
      *
      * @param notification Notification options
      */
-    public async notify(notification: NotificationCenter.Notification) {
+    public async notify(notification: NotificationCenter.Notification): Promise<string | void> {
         return new Promise((resolve, reject) => {
             const defaults: NotificationCenter.Notification = {
                 contentImage: this.workflowMeta.icon,
@@ -394,7 +392,7 @@ export class Hugo {
                 }
 
                 // Display notification
-                if (Semver.gt(latest, current)) {
+                if (semver.gt(latest, current)) {
                     if (result.checkedOnline === true && this.options.updateNotification === true) {
                         this.notify({
                             message: `Workflow version ${latest} available. Current version: ${current}.`,

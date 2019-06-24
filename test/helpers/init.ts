@@ -1,7 +1,6 @@
 import { Cache } from "@cloudstek/cache";
 import crypto from "crypto";
 import path from "path";
-import os from "os";
 import moment from "moment";
 import fs from "fs-extra";
 import nock from "nock";
@@ -10,13 +9,15 @@ import sinon from "sinon";
 import { Updater, Hugo, HugoOptions } from "../../src";
 
 export function setAlfredEnv() {
-    process.env.alfred_version = "3.0.0";
+    process.env.alfred_version = "4.0.0";
     process.env.alfred_workflow_version = "1.0.0";
     process.env.alfred_workflow_bundleid = "my.work.flow";
+    process.env.alfred_preferences = path.join("build", "cache", crypto.randomBytes(8).toString("hex"));
     process.env.alfred_workflow_data = path.join("build", "cache", crypto.randomBytes(8).toString("hex"));
     process.env.alfred_workflow_cache = path.join("build", "cache", crypto.randomBytes(8).toString("hex"));
     process.env.alfred_debug = "0";
 
+    fs.ensureDirSync(process.env.alfred_preferences);
     fs.ensureDirSync(process.env.alfred_workflow_data);
     fs.ensureDirSync(process.env.alfred_workflow_cache);
 

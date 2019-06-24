@@ -17,7 +17,7 @@ Alfred metadata can be accessed using the `alfredMeta` property of Hugo and is a
     themeBackground: // Theme background colour,
     themeSelectionBackground: // Colour of the selected result,
     themeSubtext: // Contains value from alfred_theme_subtext,
-	themeFile: // Absolute path to theme file (if found),
+    themeFile: // Absolute path to theme file (if found),
     version: // Alfred version
 }
 ```
@@ -64,7 +64,7 @@ const hugo = new Hugo();
 console.log(`Alfred version ${hugo.alfredMeta.version}`);
 console.log(`Workflow ${hugo.workflowMeta.name} version ${hugo.workflowMeta.version}`);
 
-// Alfred version 3.4.1
+// Alfred version 4.0.0
 // Workflow alfred-foobar version 1.0.0
 ```
 

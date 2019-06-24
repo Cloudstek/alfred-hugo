@@ -1,4 +1,7 @@
 import { Duration } from "moment";
+import StrictEventEmitter from "strict-event-emitter-types";
+import { EventEmitter } from "events";
+import { Cache } from "@cloudstek/cache";
 
 export enum IconType {
     fileIcon = "fileicon",
@@ -98,3 +101,9 @@ export interface LatestVersion {
     url: string;
     checkedOnline: boolean;
 }
+
+export interface FileCacheEvents {
+    change: (cache: Cache, file: string) => void;
+}
+
+export type FileCacheEventEmitter = StrictEventEmitter<EventEmitter, FileCacheEvents>;

@@ -12,7 +12,7 @@ export function date() {
 }
 
 export function forwardTime(amount?: DurationInputArg1, unit?: DurationInputArg2) {
-    mockdate.set(moment.utc().add(amount, unit));
+    mockdate.set(moment.utc().add(amount, unit).toDate());
 }
 
 export function npm(times: number, pkg?: any, code: number = 200, latestVersion?: string) {

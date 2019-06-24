@@ -80,14 +80,15 @@ test.serial("invalid version", (t) => {
 test.serial("existing theme", (t) => {
     const h = hugo();
 
-    process.env.alfred_theme = "default";
+    process.env.alfred_theme = "foo";
 
-    const themeFilePath = path.resolve(process.env.HOME, "Library", "Application Support", "Alfred 3",
-        "Alfred.alfredpreferences", "themes", process.env.alfred_theme, "theme.json");
+    const themeFilePath = path.resolve(process.env.alfred_preferences, "themes", process.env.alfred_theme, "theme.json");
 
     fs.ensureFileSync(themeFilePath);
     fs.writeJsonSync(themeFilePath, {
-        foo: "bar",
+        alfredtheme: {
+            foo: "bar",
+        },
     });
 
     t.is(typeof h.alfredMeta, "object");
