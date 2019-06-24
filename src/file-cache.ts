@@ -31,6 +31,8 @@ export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) 
 
         // Initialize cache store for this file
         options.name = Crypto.createHash("sha1").update(filePath).digest("hex") + ".json";
+        options.ttl = options.ttl || false;
+
         this.cache = new Cache(options);
     }
 
