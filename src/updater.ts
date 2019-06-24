@@ -1,6 +1,6 @@
 import { Cache } from "@cloudstek/cache";
 import moment from "moment";
-import readPkg from "read-pkg";
+import readPkg from "read-pkg-up";
 import axios from "axios";
 import semver from "semver";
 
@@ -115,7 +115,7 @@ export class Updater {
      */
     private async checkNpm(pkg?: any): Promise<LatestVersion | void> {
         // Get details from package.json
-        pkg = pkg || await readPkg({ cwd: process.cwd() });
+        pkg = pkg || readPkg.sync().package;
 
         if (!pkg.name || !pkg.version) {
             throw new Error("Invalid package.json.");
