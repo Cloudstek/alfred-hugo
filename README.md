@@ -38,27 +38,23 @@ Please see the [docs](./docs) for documentation and examples on how to use Hugo 
 
 ### Publishing your workflow to NPM
 
-To publish your workflow to NPM, use [alfred-link](github.com/samverschueren/alfred-link).
-
-> Add the `alfred-link` command as `postinstall` script of your Alfred package and add `alfred-unlink` as `preuninstall` script to clean up the resources when the workflow gets uninstalled.
+To publish your workflow to NPM, set up the `postinstall` and `preuninstall` scripts in your `package.json` as follows to automatically add your workflow to Alfred.
 
 ```json
 {
   "name": "alfred-unicorn",
   "scripts": {
-    "postinstall": "alfred-link",
-    "preuninstall": "alfred-unlink"
+    "postinstall": "hugo-link",
+    "preuninstall": "hugo-unlink"
   }
 }
 ```
 
-> You can now install the `alfred-unicorn` package like this
+People can now install your package globally like this:
 
 ```bash
-$ npm install -g alfred-unicorn
+$ npm install -g my-alfred-package
 ```
-
-> This will update `info.plist` with the information from `package.json` and creates a `unicorn` symlink inside the Alfred workflows directory that points to the location of the `alfred-unicorn` module.
 
 ## Workflows using Hugo
 
