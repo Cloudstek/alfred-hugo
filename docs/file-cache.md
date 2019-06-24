@@ -4,6 +4,8 @@ Processing files is often takes time and waste of resources when the file hardly
 
 The built-in file cache (for lack of a better name) does all this for you and is built upon the built-in [cache](./cache). Take a look at the examples on how to use it.
 
+By default the TTL (cache lifetime) is set to `false`, which means the results are cached indefinitely until the file has been changed. You can force a different TTL by 
+
 ### Example
 
 ```js
@@ -30,5 +32,18 @@ const results = fc.get();
 
 console.log(results.foo); // Will output processed foo data
 console.log(results.bar); // Will output processed bar data
+```
+
+#### With a 1-hour TTL
+
+```js
+import { Hugo } from "alfred-hugo";
+
+const hugo = new Hugo();
+
+// Create the file cache
+const fc = hugo.cacheFile('/path/to/file.to.process', { ttl: 3600 });
+
+// ... see example above.
 ```
 
