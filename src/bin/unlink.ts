@@ -39,7 +39,20 @@ for (const app of apps) {
             .then(({ package: pkg }) => {
                 const dest = path.join(workflowsDir, pkg.name.replace("/", "-"));
 
-                del(dest, { force: true });
+                // Skip if destination does not exist
+                if (fs.pathExistsSync(dest) === false) {
+                    return;
+                }
+
+                const destStat = fs.lstatSync(dest);
+
+                // Skip if destination is not a symbolic link
+                if (destStat.isSymbolicLink() === false) {
+                    console.debug("Destination is not a symbolic link, skipping.");
+                    return;
+                }
+
+                del.sync(dest, { force: true });
             });
     } catch (err) {
         continue;

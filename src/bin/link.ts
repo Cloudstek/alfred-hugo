@@ -40,9 +40,33 @@ for (const app of apps) {
                 const src = path.dirname(pkgPath);
                 const dest = path.join(workflowsDir, pkg.name.replace("/", "-"));
 
-                del(dest, { force: true }).then(() => {
-                    fs.ensureSymlink(src, dest);
-                });
+                if (fs.pathExistsSync(dest)) {
+                    const destStat = fs.lstatSync(dest);
+
+                    // Skip link creation if destination is a directory, not a symlink
+                    if (destStat.isDirectory()) {
+                        console.debug("Destination is a directory, skipping.");
+                        return;
+                    }
+
+                    // Skip if destination exists but is not a directory or symlink
+                    if (destStat.isSymbolicLink() === false) {
+                        console.debug("Desination exists but is neither a directory or symlink, skipping.");
+                        return;
+                    }
+
+                    // Skip link creation if already linked
+                    if (fs.realpathSync(dest) === src) {
+                        console.debug("Link already exists, skipping.");
+                        return;
+                    }
+
+                    // Remove existing symlink
+                    del.sync(dest, { force: true });
+                }
+
+                // Create symlink
+                fs.ensureSymlink(src, dest);
             })
             .catch((err) => {
                 console.error(err);
