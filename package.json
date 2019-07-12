@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
@@ -29,7 +29,7 @@
   ],
   "license": "BSD-2-Clause",
   "devDependencies": {
-    "@types/fs-extra": "^7.0.0",
+    "@types/fs-extra": "^8.0.0",
     "@types/glob": "^7.1.1",
     "@types/mockdate": "^2.0.0",
     "@types/nock": "^10.0.3",
@@ -50,11 +50,11 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@types/node-notifier": "^5.4.0",
     "@cloudstek/cache": "^1.0.1",
+    "@types/node-notifier": "^5.4.0",
     "axios": "^0.19.0",
     "bplist-parser": "^0.1.1",
-    "del": "^4.1.1",
+    "del": "^5.0.0",
     "fs-extra": "^8.0.1",
     "fuse.js": "^3.4.4",
     "glob": "^7.1.4",
@@ -74,10 +74,10 @@
     "clean:dist": "del-cli dist",
     "clean:test": "del-cli build",
     "clean:coverage": "del-cli coverage .nyc_output",
-    "build": "tsc",
-    "build:dist": "npm-run-all -s clean && tsc -p tsconfig.dist.json",
-    "test": "npm-run-all clean:test clean:coverage build test:run clean:test",
-    "test:run": "nyc ava",
+    "build": "npm-run-all -p clean:test clean:coverage && tsc",
+    "watch": "npm-run-all -p clean:test clean:coverage && tsc --watch",
+    "build:dist": "npm-run-all -s clean:dist && tsc -p tsconfig.dist.json",
+    "test": "npm-run-all -s clean:coverage && nyc ava",
     "test:ci": "npm-run-all -p clean:* -s build && nyc -s ava && nyc report --reporter=text-lcov | coveralls",
     "lint": "npm-run-all -l -p lint:*",
     "lint:src": "tslint src/**/*.ts",
