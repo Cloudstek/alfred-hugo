@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
