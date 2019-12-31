@@ -1,4 +1,4 @@
-import readPkg from "read-pkg";
+import readPkg from "read-pkg-up";
 import semver from "semver";
 import nock from "nock";
 import path from "path";
@@ -16,7 +16,7 @@ export function forwardTime(amount?: DurationInputArg1, unit?: DurationInputArg2
 }
 
 export function npm(times: number, pkg?: any, code: number = 200, latestVersion?: string) {
-    pkg = pkg || readPkg.sync();
+    pkg = pkg || readPkg.sync().packageJson;
 
     if (latestVersion !== null) {
         latestVersion = latestVersion || semver.parse(pkg.version).inc("major").toString();

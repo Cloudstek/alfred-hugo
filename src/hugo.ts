@@ -22,7 +22,7 @@ export class Hugo {
     public items: Item[] = [];
 
     private actions: Action[];
-    private fuseDefaults: Fuse.FuseOptions<any>;
+    private fuseDefaults: Fuse.FuseOptions<Item>;
     private options: HugoOptions;
     private updater: Updater;
     private notifier: NotificationCenter;
@@ -308,7 +308,7 @@ export class Hugo {
      * @param {string} query Search string
      * @param {Object} options fuse.js options
      */
-    public match(candidates: Item[], query: string, options?: Fuse.FuseOptions<any>): Item[] {
+    public match(candidates: Item[], query: string, options?: Fuse.FuseOptions<Item>): Item[] {
         options = Object.assign({}, this.fuseDefaults, options || {});
 
         if (query.trim().length === 0) {
@@ -316,21 +316,32 @@ export class Hugo {
         }
 
         // Set match attribute to title when missing to mimic Alfred matching behaviour
-        if (options.keys.indexOf("match") >= 0) {
-            candidates = candidates.map((candidate) => {
-                if (!candidate.match) {
-                    candidate.match = candidate.title;
-                }
+        for (const key of options.keys) {
+            const name = typeof key === "string" ? key : key.name;
 
-                return candidate;
-            });
+            if (name === "match") {
+                candidates = candidates.map((candidate) => {
+                    if (!candidate.match) {
+                        candidate.match = candidate.title;
+                    }
+
+                    return candidate;
+                });
+
+                break;
+            }
         }
+
+        // Make sure to always return Item[]
+        options.id = undefined;
+        options.includeMatches = false;
+        options.includeScore = false;
 
         // Create fuse.js fuzzy search object
         const fuse = new Fuse(candidates, options);
 
         // Return results
-        return fuse.search(query);
+        return <Item[]>fuse.search(query);
     }
 
     /**

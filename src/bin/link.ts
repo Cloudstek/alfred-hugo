@@ -36,7 +36,7 @@ for (const app of apps) {
 
         // Read package.json
         readPkg()
-            .then(({ package: pkg, path: pkgPath }) => {
+            .then(({ packageJson: pkg, path: pkgPath }) => {
                 const src = path.dirname(pkgPath);
                 const dest = path.join(workflowsDir, pkg.name.replace("/", "-"));
 
