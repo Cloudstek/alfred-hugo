@@ -115,7 +115,7 @@ export class Updater {
      */
     private async checkNpm(pkg?: any): Promise<LatestVersion | void> {
         // Get details from package.json
-        pkg = pkg || readPkg.sync().package;
+        pkg = pkg || readPkg.sync().packageJson;
 
         if (!pkg.name || !pkg.version) {
             throw new Error("Invalid package.json.");

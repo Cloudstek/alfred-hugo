@@ -36,7 +36,7 @@ for (const app of apps) {
 
         // Read package.json
         readPkg()
-            .then(({ package: pkg }) => {
+            .then(({ packageJson: pkg }) => {
                 const dest = path.join(workflowsDir, pkg.name.replace("/", "-"));
 
                 // Skip if destination does not exist

@@ -1,7 +1,7 @@
 import Test, { TestInterface } from "ava";
 import semver from "semver";
 import nock from "nock";
-import readPkg from "read-pkg";
+import readPkg from "read-pkg-up";
 
 import { UpdateSource } from "../../src";
 
@@ -62,7 +62,7 @@ test.serial("check for updates uncached", async (t) => {
     mock.npm(1);
 
     // Package
-    const pkg = readPkg.sync();
+    const pkg = readPkg.sync().packageJson;
 
     const update = await u.checkUpdates("npm");
 
@@ -107,7 +107,7 @@ test.serial("check for updates cached", async (t) => {
     mock.npm(2);
 
     // Package
-    const pkg = readPkg.sync();
+    const pkg = readPkg.sync().packageJson;
 
     // Check for updates
     let update = await u.checkUpdates("npm");
@@ -223,7 +223,7 @@ test("check for updates with no package version set", async (t) => {
 test.serial("check for updates with unpublished package", async (t) => {
     const u = updater();
 
-    const pkg = readPkg.sync();
+    const pkg = readPkg.sync().packageJson;
 
     // Mock request
     mock.npm(1, pkg, 404);
@@ -252,7 +252,7 @@ test.serial("check for updates with unpublished package from custom package.json
 test.serial("check for updates with package without latest dist-tag", async (t) => {
     const u = updater();
 
-    const pkg = readPkg.sync();
+    const pkg = readPkg.sync().packageJson;
 
     // Mock request
     nock("https://registry.npmjs.org")
@@ -296,7 +296,7 @@ test.serial("check for updates with package without latest dist-tag from custom 
 test.serial("check for updates when invalid version is returned", async (t) => {
     const u = updater();
 
-    const pkg = readPkg.sync();
+    const pkg = readPkg.sync().packageJson;
 
     // Mock request
     mock.npm(1, pkg, 200, "foobar");
