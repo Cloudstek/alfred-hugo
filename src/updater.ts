@@ -1,10 +1,10 @@
-import { Cache } from "@cloudstek/cache";
-import moment from "moment";
-import readPkg from "read-pkg-up";
-import axios from "axios";
-import semver from "semver";
+import { Cache } from '@cloudstek/cache';
+import moment from 'moment';
+import readPkg from 'read-pkg-up';
+import axios from 'axios';
+import semver from 'semver';
 
-import { LatestVersion, UpdateSource } from "./types";
+import { LatestVersion, UpdateSource } from './types';
 
 /**
  * Hugo updater
@@ -30,7 +30,7 @@ export class Updater {
     public async checkUpdates(source: string, pkg?: any): Promise<LatestVersion | void> {
         // Check update source
         if (!UpdateSource[source as any]) {
-            throw new Error("Invalid update source.");
+            throw new Error('Invalid update source.');
         }
 
         const latest = this.cache.get(`latest_version_${source}`) as LatestVersion | undefined;
@@ -44,9 +44,9 @@ export class Updater {
             }
 
             switch (source.toLowerCase()) {
-                case "npm":
+                case 'npm':
                     return this.checkNpm(pkg);
-                case "packal":
+                case 'packal':
                     return this.checkPackal();
             }
         }
@@ -65,15 +65,15 @@ export class Updater {
         const bundleId = process.env.alfred_workflow_bundleid;
 
         if (!bundleId) {
-            throw new Error("No bundle ID, not checking Packal for updates.");
+            throw new Error('No bundle ID, not checking Packal for updates.');
         }
 
         // Set last check time
-        this.cache.set("last_check_packal", moment.utc().unix(), this.interval);
+        this.cache.set('last_check_packal', moment.utc().unix(), this.interval);
 
         // Packal URL
-        const searchParam: string = encodeURIComponent("site:packal.org " + bundleId);
-        const pkgUrl: string = `https://encrypted.google.com/search?sourceid=chrome&ie=UTF-8&q=${searchParam}&btnI`;
+        const searchParam: string = encodeURIComponent('site:packal.org ' + bundleId);
+        const pkgUrl = `https://encrypted.google.com/search?sourceid=chrome&ie=UTF-8&q=${searchParam}&btnI`;
 
         const latest = await axios.get(`https://github.com/packal/repository/blob/master/${bundleId}/appcast.xml`)
             .then((response) => {
@@ -81,11 +81,11 @@ export class Updater {
                 const versionMatches = response.data.match(/<version>(.+)<\/version>/);
 
                 if (!versionMatches || versionMatches.length !== 2) {
-                    throw new Error("No version found.");
+                    throw new Error('No version found.');
                 }
 
                 if (!semver.valid(semver.coerce(versionMatches[1]))) {
-                    throw new Error("Invalid version in response.");
+                    throw new Error('Invalid version in response.');
                 }
 
                 return {
@@ -103,7 +103,7 @@ export class Updater {
             });
 
         // Cache results
-        this.cache.set("latest_version_packal", latest, this.interval);
+        this.cache.set('latest_version_packal', latest, this.interval);
 
         return latest;
     }
@@ -118,28 +118,28 @@ export class Updater {
         pkg = pkg || readPkg.sync().packageJson;
 
         if (!pkg.name || !pkg.version) {
-            throw new Error("Invalid package.json.");
+            throw new Error('Invalid package.json.');
         }
 
         // Set last check time
-        this.cache.set("last_check_npm", moment.utc().unix(), this.interval);
+        this.cache.set('last_check_npm', moment.utc().unix(), this.interval);
 
         // NPM URL
-        const pkgUrl: string = `https://www.npmjs.com/package/${pkg.name}`;
+        const pkgUrl = `https://www.npmjs.com/package/${pkg.name}`;
 
         // Check for updates
         const latest = await axios.get(`https://registry.npmjs.org/${pkg.name}`)
             .then((response) => {
-                if (!response.data["dist-tags"].latest) {
-                    throw new Error("No latest version found in response.");
+                if (!response.data['dist-tags'].latest) {
+                    throw new Error('No latest version found in response.');
                 }
 
-                if (!semver.valid(semver.coerce(response.data["dist-tags"].latest))) {
-                    throw new Error("Invalid version in response.");
+                if (!semver.valid(semver.coerce(response.data['dist-tags'].latest))) {
+                    throw new Error('Invalid version in response.');
                 }
 
                 return {
-                    version: response.data["dist-tags"].latest,
+                    version: response.data['dist-tags'].latest,
                     url: pkgUrl,
                     checkedOnline: true,
                 };
@@ -153,7 +153,7 @@ export class Updater {
             });
 
         // Cache results
-        this.cache.set("latest_version_npm", latest, this.interval);
+        this.cache.set('latest_version_npm', latest, this.interval);
 
         return latest;
     }

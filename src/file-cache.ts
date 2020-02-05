@@ -1,11 +1,11 @@
-import { Cache } from "@cloudstek/cache";
-import { ICacheOptions } from "@cloudstek/cache";
-import Crypto from "crypto";
-import { EventEmitter } from "events";
-import fs from "fs-extra";
+import { Cache } from '@cloudstek/cache';
+import { ICacheOptions } from '@cloudstek/cache';
+import Crypto from 'crypto';
+import { EventEmitter } from 'events';
+import fs from 'fs-extra';
 
-import * as utils from "./utils";
-import { FileCacheEventEmitter } from "./types";
+import utils from './utils';
+import { FileCacheEventEmitter } from './types';
 
 /**
  * File cache.
@@ -30,7 +30,7 @@ export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) 
         this.filePath = filePath;
 
         // Initialize cache store for this file
-        options.name = Crypto.createHash("sha1").update(filePath).digest("hex") + ".json";
+        options.name = Crypto.createHash('sha1').update(filePath).digest('hex') + '.json';
         options.ttl = options.ttl || false;
 
         this.cache = new Cache(options);
@@ -42,7 +42,7 @@ export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) 
      * Emits the "change" event with the cache instance, file and hash of that file when the file has been changed
      * or expired from the cache.
      */
-    public get() {
+    public get(): any {
         if (utils.fileExists(this.filePath) === false) {
             return null;
         }
@@ -50,10 +50,10 @@ export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) 
         // Get file fstat
         const stat = fs.statSync(this.filePath);
 
-        if (this.cache.has("mtime") === false || this.cache.get("mtime") !== stat.mtimeMs) {
-            this.emit("change", this.cache, fs.readFileSync(this.filePath, "utf8"));
+        if (this.cache.has('mtime') === false || this.cache.get('mtime') !== stat.mtimeMs) {
+            this.emit('change', this.cache, fs.readFileSync(this.filePath, 'utf8'));
 
-            this.cache.set("mtime", stat.mtimeMs);
+            this.cache.set('mtime', stat.mtimeMs);
             this.cache.commit();
 
             return this.cache.all();

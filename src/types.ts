@@ -1,22 +1,22 @@
-import { Duration } from "moment";
-import StrictEventEmitter from "strict-event-emitter-types";
-import { EventEmitter } from "events";
-import { Cache } from "@cloudstek/cache";
+import { Duration } from 'moment';
+import StrictEventEmitter from 'strict-event-emitter-types';
+import { EventEmitter } from 'events';
+import { Cache } from '@cloudstek/cache';
 
 export enum IconType {
-    fileIcon = "fileicon",
-    fileType = "filetype",
+    fileIcon = 'fileicon',
+    fileType = 'filetype',
 }
 
 export enum ItemType {
-    default = "default",
-    file = "file",
-    fileSkipCheck = "file:skipcheck",
+    default = 'default',
+    file = 'file',
+    fileSkipCheck = 'file:skipcheck',
 }
 
 export enum UpdateSource {
-    NPM = "npm" as any,
-    Packal = "packal" as any,
+    NPM = 'npm' as any,
+    Packal = 'packal' as any,
 }
 
 export interface HugoOptions {

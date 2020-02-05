@@ -207,7 +207,7 @@ test("check for updates with no package name set", async (t) => {
         return u.checkUpdates("npm", {
             version: "1.0.0",
         });
-    }, "Invalid package.json.");
+    }, {instanceOf: Error, message: "Invalid package.json."});
 });
 
 test("check for updates with no package version set", async (t) => {
@@ -217,7 +217,7 @@ test("check for updates with no package version set", async (t) => {
         return u.checkUpdates("npm", {
             name: "alfred-my-workflow",
         });
-    }, "Invalid package.json.");
+    }, {instanceOf: Error, message: "Invalid package.json."});
 });
 
 test.serial("check for updates with unpublished package", async (t) => {
@@ -274,7 +274,7 @@ test.serial("check for updates with package without latest dist-tag", async (t) 
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm");
-    }, "No latest version found in response.");
+    }, {instanceOf: Error, message: "No latest version found in response."});
 });
 
 test.serial("check for updates with package without latest dist-tag from custom package.json", async (t) => {
@@ -290,7 +290,7 @@ test.serial("check for updates with package without latest dist-tag from custom 
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm", pkg);
-    }, "No latest version found in response.");
+    }, {instanceOf: Error, message: "No latest version found in response."});
 });
 
 test.serial("check for updates when invalid version is returned", async (t) => {
@@ -303,7 +303,7 @@ test.serial("check for updates when invalid version is returned", async (t) => {
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("npm");
-    }, "Invalid version in response.");
+    }, {instanceOf: Error, message: "Invalid version in response."});
 });
 
 test.afterEach((t) => {

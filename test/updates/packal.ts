@@ -123,7 +123,7 @@ test.serial("check for updates with no bundle id set", async (t) => {
         delete process.env.alfred_workflow_bundleid;
 
         return u.checkUpdates("packal");
-    }, "No bundle ID, not checking Packal for updates.");
+    }, {instanceOf: Error, message: "No bundle ID, not checking Packal for updates."});
 });
 
 test.serial("check for updates when no version is returned", async (t) => {
@@ -133,7 +133,7 @@ test.serial("check for updates when no version is returned", async (t) => {
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("packal");
-    }, "No version found.");
+    }, {instanceOf: Error, message: "No version found."});
 });
 
 test.serial("check for updates when invalid version is returned", async (t) => {
@@ -143,7 +143,7 @@ test.serial("check for updates when invalid version is returned", async (t) => {
 
     await t.throwsAsync(async () => {
         return u.checkUpdates("packal");
-    }, "Invalid version in response.");
+    }, {instanceOf: Error, message: "Invalid version in response."});
 });
 
 test.serial("check for updates with unpublished workflow", async (t) => {

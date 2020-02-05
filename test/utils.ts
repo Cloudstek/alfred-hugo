@@ -11,7 +11,7 @@ import semver from "semver";
 const homeDir = path.resolve("build", "cache", crypto.randomBytes(8).toString("hex"));
 sinon.stub(os, "homedir").returns(homeDir);
 
-import * as utils from "../src/utils";
+import utils from "../src/utils";
 
 test.serial("resolve alfred 3 preferences", (t) => {
     // Write new binary plist

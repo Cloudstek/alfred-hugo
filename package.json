@@ -1,6 +1,6 @@
 {
   "name": "alfred-hugo",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Alfred workflow bindings for NodeJS",
   "author": "Maarten de Boer <maarten@cloudstek.nl> (https://cloudstek.nl)",
   "contributors": [
@@ -32,25 +32,29 @@
     "@types/fs-extra": "^8.0.0",
     "@types/glob": "^7.1.1",
     "@types/mockdate": "^2.0.0",
-    "@types/node": "^13.1.2",
-    "@types/semver": "^6.0.0",
+    "@types/node": "^13.7.0",
+    "@types/semver": "^7.1.0",
     "@types/sinon": "^7.0.12",
-    "ava": "^2.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "ava": "^3.2.0",
     "bplist-creator": "^0.0.8",
     "coveralls": "^3.0.4",
     "del-cli": "^3.0.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-prefer-arrow": "^1.1.7",
     "mockdate": "^2.0.2",
-    "nock": "^11.7.0",
+    "nock": "^11.7.2",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.0.0",
-    "sinon": "^8.0.2",
-    "tslint": "^5.18.0",
-    "typescript": "^3.4.5"
+    "sinon": "^8.1.1",
+    "tslint": "^6.0.0",
+    "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@cloudstek/cache": "^1.0.1",
+    "@cloudstek/cache": "^1.0.5",
     "@types/node-notifier": "^5.4.0",
-    "axios": "^0.19.0",
+    "axios": "^0.19.2",
     "bplist-parser": "^0.2.0",
     "del": "^5.0.0",
     "fs-extra": "^8.0.1",
@@ -60,7 +64,7 @@
     "node-notifier": "^6.0.0",
     "plist": "^3.0.1",
     "read-pkg-up": "^7.0.1",
-    "semver": "^7.1.1",
+    "semver": "^7.1.2",
     "strict-event-emitter-types": "^2.0.0",
     "untildify": "^4.0.0"
   },
@@ -78,15 +82,13 @@
     "test": "npm-run-all -p clean:coverage && tsc && nyc ava",
     "test:ci": "npm-run-all -p clean:* && tsc && nyc -s ava && nyc report --reporter=text-lcov | coveralls",
     "lint": "npm-run-all -l -p lint:*",
-    "lint:src": "tslint src/**/*.ts",
-    "lint:test": "tslint test/**/*.ts"
+    "lint:src": "eslint src/**/*.ts",
+    "lint:test": "eslint test/**/*.ts"
   },
   "ava": {
     "files": [
-      "build/test/**/*"
-    ],
-    "helpers": [
-      "build/test/helpers/**/*"
+      "build/test/**/*",
+      "!build/test/helpers/**/*"
     ]
   }
 }

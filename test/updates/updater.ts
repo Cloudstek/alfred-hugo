@@ -17,11 +17,11 @@ test("check with invalid update source as string", async (t) => {
         hugo({
             updateSource: "foobar",
         });
-    }, "Invalid update source.");
+    }, {instanceOf: Error, message: "Invalid update source."});
 
     await t.throwsAsync(async () => {
         return updater().checkUpdates("foobar");
-    }, "Invalid update source.");
+    }, {instanceOf: Error, message: "Invalid update source."});
 });
 
 test.serial("check update with no new updates", async (t) => {

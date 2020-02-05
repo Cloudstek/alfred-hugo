@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 
-import * as utils from "../src/utils";
+import utils from "../src/utils";
 
 import { hugo } from "./helpers/init";
 

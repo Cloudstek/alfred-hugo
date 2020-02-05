@@ -1,18 +1,18 @@
-import fs from "fs-extra";
-import crypto from "crypto";
-import Fuse from "fuse.js";
-import Axios, { AxiosRequestConfig } from "axios";
-import moment from "moment";
-import path from "path";
-import semver from "semver";
-import NotificationCenter from "node-notifier/notifiers/notificationcenter";
-import { Cache, ICacheOptions } from "@cloudstek/cache";
+import fs from 'fs-extra';
+import crypto from 'crypto';
+import Fuse from 'fuse.js';
+import Axios, { AxiosRequestConfig } from 'axios';
+import moment from 'moment';
+import path from 'path';
+import semver from 'semver';
+import NotificationCenter from 'node-notifier/notifiers/notificationcenter';
+import { Cache, ICacheOptions } from '@cloudstek/cache';
 
-import { Action } from "./action";
-import { FileCache } from "./file-cache";
-import { Updater } from "./updater";
-import * as utils from "./utils";
-import { AlfredMeta, FilterResults, HugoOptions, WorkflowMeta, UpdateSource, Item } from "./types";
+import { Action } from './action';
+import { FileCache } from './file-cache';
+import { Updater } from './updater';
+import utils from './utils';
+import { AlfredMeta, FilterResults, HugoOptions, WorkflowMeta, UpdateSource, Item } from './types';
 
 export class Hugo {
     public cache: Cache;
@@ -31,7 +31,7 @@ export class Hugo {
         // Save options
         this.options = {
             checkUpdates: true,
-            updateInterval: moment.duration(1, "day"),
+            updateInterval: moment.duration(1, 'day'),
             updateItem: true,
             updateNotification: true,
             updateSource: UpdateSource.NPM,
@@ -41,14 +41,14 @@ export class Hugo {
 
         // Set defaults for FuseJS
         this.fuseDefaults = {
-            keys: ["match"],
+            keys: ['match'],
             threshold: 0.4,
         };
 
         // Configure config store
         this.config = new Cache({
             dir: this.workflowMeta.data,
-            name: "config.json",
+            name: 'config.json',
             ttl: false,
         });
 
@@ -73,6 +73,8 @@ export class Hugo {
      * Set Hugo options
      *
      * @param options Options to set
+     *
+     * @return Hugo
      */
     public configure(options: HugoOptions): Hugo {
         // Update options
@@ -81,7 +83,7 @@ export class Hugo {
         // Convert updateInterval to moment.Duration object
         if (options.updateInterval) {
             if (!moment.isDuration(options.updateInterval)) {
-                options.updateInterval = moment.duration(options.updateInterval, "seconds");
+                options.updateInterval = moment.duration(options.updateInterval, 'seconds');
             }
         }
 
@@ -90,8 +92,8 @@ export class Hugo {
             delete options.updateInterval;
         }
 
-        if (typeof options.updateSource !== "string" || !UpdateSource[options.updateSource.toLowerCase() as any]) {
-            throw new Error("Invalid update source.");
+        if (typeof options.updateSource !== 'string' || !UpdateSource[options.updateSource.toLowerCase() as any]) {
+            throw new Error('Invalid update source.');
         }
 
         this.options = options;
@@ -102,14 +104,14 @@ export class Hugo {
     /**
      * Alfred metadata
      *
-     * @return
+     * @return AlfredMeta
      */
     public get alfredMeta(): AlfredMeta {
         let version = semver.valid(semver.coerce(process.env.alfred_version));
 
         // Check if version is valid
         if (version === null) {
-            if (process.env.alfred_debug === "1") {
+            if (process.env.alfred_debug === '1') {
                 console.error(`Invalid Alfred version: ${process.env.alfred_version}`);
             }
 
@@ -118,25 +120,25 @@ export class Hugo {
 
         // Gather environment information
         const data: AlfredMeta = {
-            debug: process.env.alfred_debug === "1",
+            debug: process.env.alfred_debug === '1',
             preferences: process.env.alfred_preferences || utils.resolveAlfredPrefs(version),
             preferencesLocalHash: process.env.alfred_preferences_localhash,
             theme: process.env.alfred_theme,
             themeBackground: process.env.alfred_theme_background,
             themeSelectionBackground: process.env.alfred_theme_selection_background,
-            themeSubtext: parseFloat(process.env.alfred_theme_subtext || "0"),
+            themeSubtext: parseFloat(process.env.alfred_theme_subtext || '0'),
             version,
         };
 
         // Find and load curent Alfred theme file
         if (process.env.HOME && data.theme) {
-            const themeFile = path.resolve(data.preferences, "themes", data.theme, "theme.json");
+            const themeFile = path.resolve(data.preferences, 'themes', data.theme, 'theme.json');
 
             try {
                 fs.statSync(themeFile);
                 data.themeFile = themeFile;
             } catch (e) {
-                if (process.env.alfred_debug === "1") {
+                if (process.env.alfred_debug === '1') {
                     console.error(`Could not find theme file "${themeFile}"`);
                 }
             }
@@ -147,6 +149,8 @@ export class Hugo {
 
     /**
      * Alfred theme
+     *
+     * @return any | null
      */
     public get alfredTheme(): any | null {
         const themeFile = this.alfredMeta.themeFile;
@@ -162,13 +166,15 @@ export class Hugo {
 
     /**
      * Workflow metadata
+     *
+     * @return WorkflowMeta
      */
     public get workflowMeta(): WorkflowMeta {
         let version = semver.valid(semver.coerce(process.env.alfred_workflow_version));
 
         // Check if version is valid
         if (version === null) {
-            if (process.env.alfred_debug === "1") {
+            if (process.env.alfred_debug === '1') {
                 console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}`);
             }
 
@@ -179,7 +185,7 @@ export class Hugo {
             bundleId: process.env.alfred_workflow_bundleid,
             cache: process.env.alfred_workflow_cache,
             data: process.env.alfred_workflow_data,
-            icon: path.join(process.cwd(), "icon.png"),
+            icon: path.join(process.cwd(), 'icon.png'),
             name: process.env.alfred_workflow_name,
             uid: process.env.alfred_workflow_uid,
             version,
@@ -188,8 +194,10 @@ export class Hugo {
 
     /**
      * Reset Hugo.
+     *
+     * @return Hugo
      */
-    public reset() {
+    public reset(): Hugo {
         this.rerun = undefined;
         this.variables = {};
         this.items = [];
@@ -199,6 +207,8 @@ export class Hugo {
 
     /**
      * Alfred user input
+     *
+     * @return string[]
      */
     public get input(): string[] {
         return process.argv.slice(2);
@@ -209,11 +219,11 @@ export class Hugo {
      *
      * @see https://www.alfredapp.com/help/workflows/inputs/script-filter/json
      *
-     * @return  Object to be output and interpreted by Alfred
+     * @return FilterResults to be output and interpreted by Alfred
      */
     public get output(): FilterResults {
         if (this.rerun !== null && (this.rerun < 0.1 || this.rerun > 5.0)) {
-            throw new Error("Invalid value for rerun, must be between 0.1 and 5.0");
+            throw new Error('Invalid value for rerun, must be between 0.1 and 5.0');
         }
 
         return {
@@ -230,6 +240,8 @@ export class Hugo {
      *
      * @param keyword Action name
      * @param callback Callback to execute when query matches action name
+     *
+     * @return Action
      */
     public action(
         keyword: string,
@@ -249,7 +261,7 @@ export class Hugo {
      *
      * @return Hugo
      */
-    public run(args?: string[]) {
+    public run(args?: string[]): Hugo {
         if (!args) {
             args = process.argv.slice(2);
         }
@@ -270,6 +282,8 @@ export class Hugo {
      *
      * @param filepath File path
      * @param options Cache options
+     *
+     * @return FileCache
      */
     public cacheFile(filePath: string, options?: ICacheOptions): FileCache {
         return new FileCache(filePath, options || {
@@ -281,8 +295,10 @@ export class Hugo {
      * Clear cache
      *
      * Clear the whole workflow cache directory.
+     *
+     * @return Promise<void>
      */
-    public async clearCache() {
+    public async clearCache(): Promise<void> {
         if (this.workflowMeta.cache) {
             return fs.emptyDir(this.workflowMeta.cache);
         }
@@ -307,6 +323,8 @@ export class Hugo {
      * @param {Array.<Object>} candidates Input data
      * @param {string} query Search string
      * @param {Object} options fuse.js options
+     *
+     * @return Item[]
      */
     public match(candidates: Item[], query: string, options?: Fuse.FuseOptions<Item>): Item[] {
         options = Object.assign({}, this.fuseDefaults, options || {});
@@ -317,9 +335,9 @@ export class Hugo {
 
         // Set match attribute to title when missing to mimic Alfred matching behaviour
         for (const key of options.keys) {
-            const name = typeof key === "string" ? key : key.name;
+            const name = typeof key === 'string' ? key : key.name;
 
-            if (name === "match") {
+            if (name === 'match') {
                 candidates = candidates.map((candidate) => {
                     if (!candidate.match) {
                         candidate.match = candidate.title;
@@ -341,7 +359,7 @@ export class Hugo {
         const fuse = new Fuse(candidates, options);
 
         // Return results
-        return <Item[]>fuse.search(query);
+        return fuse.search(query) as Item[];
     }
 
     /**
@@ -353,12 +371,14 @@ export class Hugo {
      * @see https://github.com/mikaelbr/node-notifier
      *
      * @param notification Notification options
+     *
+     * @return Promise<string| void>
      */
     public async notify(notification: NotificationCenter.Notification): Promise<string | void> {
         return new Promise((resolve, reject) => {
             const defaults: NotificationCenter.Notification = {
                 contentImage: this.workflowMeta.icon,
-                title: ("Alfred " + this.workflowMeta.name).trim(),
+                title: ('Alfred ' + this.workflowMeta.name).trim(),
             };
 
             // Set options
@@ -380,8 +400,10 @@ export class Hugo {
      * Check for updates and notify the user
      *
      * @param pkg Package.json contents. When undefined, will read from file.
+     *
+     * @return Promise<void>
      */
-    public async checkUpdates(pkg?: any) {
+    public async checkUpdates(pkg?: any): Promise<void> {
         // No need to check if we're not showing anything, duh.
         if (this.options.checkUpdates !== true ||
                 (this.options.updateItem !== true && this.options.updateNotification !== true)) {
@@ -412,25 +434,25 @@ export class Hugo {
                     if (this.options.updateItem === true) {
                         // Make sure update item is only added once
                         this.items = this.items.filter((item) => {
-                            return item.title !== "Workflow update available!";
+                            return item.title !== 'Workflow update available!';
                         });
 
                         this.items.push({
-                            title: "Workflow update available!",
+                            title: 'Workflow update available!',
                             subtitle: `Version ${latest} is available. Current version: ${current}.`,
                             icon: {
                                 path:  this.workflowMeta.icon,
                             },
                             arg: result.url,
                             variables: {
-                                task: "wfUpdate",
+                                task: 'wfUpdate',
                             },
                         });
                     }
                 }
             })
             .catch((err) => {
-                if (process.env.alfred_debug === "1") {
+                if (process.env.alfred_debug === '1') {
                     console.error(err.message);
                 }
                 return;
@@ -445,9 +467,11 @@ export class Hugo {
      * @param url Url to request
      * @param options http.request options
      * @param ttl Cache lifetime (in seconds). Undefined to disable or false to enable indefinite caching.
+     *
+     * @return Promise<any>
      */
-    public async fetch(url: string, options?: AxiosRequestConfig, ttl?: number | false) {
-        const urlHash = crypto.createHash("md5").update(url).digest("hex");
+    public async fetch(url: string, options?: AxiosRequestConfig, ttl?: number | false): Promise<any> {
+        const urlHash = crypto.createHash('md5').update(url).digest('hex');
 
         // Check cache for a hit
         if (ttl && ttl > 0) {
@@ -470,9 +494,10 @@ export class Hugo {
 
     /**
      * Flush the output buffer so Alfred shows our items
-     * @async
+     *
+     * @return Promise<void>
      */
-    public async feedback() {
+    public async feedback(): Promise<void> {
         // Check for updates
         if (this.options.checkUpdates === true) {
             await this.checkUpdates();
@@ -481,7 +506,7 @@ export class Hugo {
         const output = this.output;
 
         // Output JSON
-        console.log(JSON.stringify(output, null, "\t"));
+        console.log(JSON.stringify(output, null, '\t'));
 
         // Reset everything
         this.reset();

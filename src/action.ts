@@ -17,7 +17,7 @@ export class Action {
         return action;
     }
 
-    public run(args: string[]) {
+    public run(args: string[]): boolean {
         if (args.length === 0) {
             return false;
         }
