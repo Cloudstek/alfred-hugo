@@ -35,6 +35,9 @@ const items = [
 ];
 
 hugo.items = hugo.items.concat(items);
+
+// Flush output buffer
+hugo.feedack();
 ```
 
 #### Variables
