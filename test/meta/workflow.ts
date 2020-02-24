@@ -52,7 +52,7 @@ test.serial("no version", (t) => {
 
     t.is(typeof h.workflowMeta, "object");
     t.falsy(h.workflowMeta.version);
-    t.true(consoleStub.calledWith(sinon.match("Invalid workflow version: undefined")));
+    t.true(consoleStub.calledWith("Invalid workflow version: undefined"));
 });
 
 test.serial("invalid version", (t) => {
@@ -72,7 +72,7 @@ test.serial("invalid version", (t) => {
 
     t.is(typeof h.workflowMeta, "object");
     t.falsy(h.workflowMeta.version);
-    t.true(consoleStub.calledWith(sinon.match("Invalid workflow version: foobar")));
+    t.true(consoleStub.calledWith("Invalid workflow version: foobar"));
 });
 
 test.afterEach.always(() => {

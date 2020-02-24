@@ -175,7 +175,7 @@ export class Hugo {
         // Check if version is valid
         if (version === null) {
             if (process.env.alfred_debug === '1') {
-                console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}. Open your workflow in Alfred, click on the [x]-Symbol and set a semantic version number.`);
+                console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}`);
             }
 
             version = undefined;
