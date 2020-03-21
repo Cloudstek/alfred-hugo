@@ -17,7 +17,7 @@ Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script
 
 ### Prerequisites
 
-* NodeJS 8 or higher
+* NodeJS 10 or higher
 * Alfred 4 with [paid powerpack addon](https://www.alfredapp.com/powerpack/buy/)
 
 ### Installing
