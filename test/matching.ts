@@ -1,40 +1,40 @@
-import Test, { TestInterface } from "ava";
+import Test, { TestInterface } from 'ava';
 
-import { hugo } from "./helpers/init";
-import { TestContext } from "./helpers/types";
+import { hugo } from './helpers/init';
+import { TestContext } from './helpers/types';
 
 const test = Test as TestInterface<TestContext>;
 
 test.beforeEach((t) => {
     t.context.items = [
         {
-            title: "Foo",
-            subtitle: "foo bar",
+            title: 'Foo',
+            subtitle: 'foo bar',
         },
         {
-            title: "Bar",
-            subtitle: "foo bar bleep",
+            title: 'Bar',
+            subtitle: 'foo bar bleep',
         },
         {
-            title: "Eep",
-            match: "Abra",
-            subtitle: "eep foo blep",
+            title: 'Eep',
+            match: 'Abra',
+            subtitle: 'eep foo blep',
         },
         {
-            title: "Foo bar",
-            subtitle: "ploop",
+            title: 'Foo bar',
+            subtitle: 'ploop',
         },
         {
-            title: "Abra",
-            subtitle: "cadabra",
+            title: 'Abra',
+            subtitle: 'cadabra',
         },
     ];
 });
 
-test("exact match", (t) => {
+test('exact match', (t) => {
     const h = hugo();
 
-    const matches = h.match(t.context.items, "Abra", {
+    const matches = h.match(t.context.items, 'Abra', {
         threshold: 0,
         shouldSort: false,
     });
@@ -48,11 +48,11 @@ test("exact match", (t) => {
     t.deepEqual(matches[1], t.context.items[4]);
 });
 
-test("exact match by single key", (t) => {
+test('exact match by single key', (t) => {
     const h = hugo();
 
-    const matches = h.match(t.context.items, "foo bar bleep", {
-        keys: ["subtitle"],
+    const matches = h.match(t.context.items, 'foo bar bleep', {
+        keys: ['subtitle'],
         threshold: 0,
     });
 
@@ -61,11 +61,11 @@ test("exact match by single key", (t) => {
     t.deepEqual(matches[0], t.context.items[1]);
 });
 
-test("exact match multiple keys", (t) => {
+test('exact match multiple keys', (t) => {
     const h = hugo();
 
-    const matches = h.match(t.context.items, "foo", {
-        keys: ["title", "subtitle"],
+    const matches = h.match(t.context.items, 'foo', {
+        keys: ['title', 'subtitle'],
     });
 
     t.true(Array.isArray(matches));
@@ -73,10 +73,10 @@ test("exact match multiple keys", (t) => {
     t.snapshot(matches);
 });
 
-test("no matches", (t) => {
+test('no matches', (t) => {
     const h = hugo();
 
-    const matches = h.match(t.context.items, "nope", {
+    const matches = h.match(t.context.items, 'nope', {
         threshold: 0,
     });
 
@@ -84,10 +84,10 @@ test("no matches", (t) => {
     t.is(matches.length, 0);
 });
 
-test("no query should return all items", (t) => {
+test('no query should return all items', (t) => {
     const h = hugo();
 
-    const matches = h.match(t.context.items, "");
+    const matches = h.match(t.context.items, '');
 
     t.true(Array.isArray(matches));
     t.is(matches.length, 5);

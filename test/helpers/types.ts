@@ -1,4 +1,4 @@
-import { Hugo, Item } from "../../src";
+import { Hugo, Item } from '../../src';
 
 export interface TestContext {
     hugo?: Hugo;
