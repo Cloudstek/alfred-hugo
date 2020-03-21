@@ -13,8 +13,8 @@ import { FileCacheEventEmitter } from './types';
  * This allows you to read and process the data once, then storing it in cache until the file has changed again.
  */
 export class FileCache extends (EventEmitter as new() => FileCacheEventEmitter) {
-    private filePath: string;
-    private cache: Cache;
+    private readonly filePath: string;
+    private readonly cache: Cache;
 
     /**
      * FileCache constructor

@@ -21,11 +21,11 @@ export class Hugo {
     public variables: { [key: string]: any } = {};
     public items: Item[] = [];
 
-    private actions: Action[];
-    private fuseDefaults: Fuse.FuseOptions<Item>;
+    private readonly actions: Action[];
+    private readonly fuseDefaults: Fuse.FuseOptions<Item>;
     private options: HugoOptions;
-    private updater: Updater;
-    private notifier: NotificationCenter;
+    private readonly updater: Updater;
+    private readonly notifier: NotificationCenter;
 
     public constructor(options?: HugoOptions) {
         // Save options
@@ -60,7 +60,7 @@ export class Hugo {
         // Initialize updater
         this.updater = new Updater(this.cache, this.options.updateInterval);
 
-        // Notofier
+        // Notifier
         this.notifier = new NotificationCenter({
             withFallback: true,
         });
@@ -175,7 +175,8 @@ export class Hugo {
         // Check if version is valid
         if (version === null) {
             if (process.env.alfred_debug === '1') {
-                console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}`);
+                // eslint-disable-next-line max-len
+                console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}. Open your workflow in Alfred, click on the [x]-Symbol and set a semantic version number.`);
             }
 
             version = undefined;
@@ -234,20 +235,20 @@ export class Hugo {
     }
 
     /**
-     * Run a callback when first script argument matches keyword. Callback will have second argument as query parameter.
+     * Run a callback when first script argument matches keyword. Callback wil have remaining arguments as argument.
      *
      * @example node index.js myaction "my query"
      *
-     * @param keyword Action name
+     * @param name Action name and optionally aliases
      * @param callback Callback to execute when query matches action name
      *
      * @return Action
      */
     public action(
-        keyword: string,
-        callback?: (query: string[]) => void,
+        name: string|string[],
+        callback?: (args: string[]) => void,
     ): Action {
-        const action = new Action(keyword, callback);
+        const action = new Action(name, callback);
 
         this.actions.push(action);
 
@@ -280,7 +281,7 @@ export class Hugo {
      *
      * This allows you to read and process the data once, then storing it in cache until the file has changed again.
      *
-     * @param filepath File path
+     * @param filePath File path
      * @param options Cache options
      *
      * @return FileCache

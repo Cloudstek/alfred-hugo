@@ -9,7 +9,7 @@ By default the TTL (cache lifetime) is set to `false`, which means the results a
 ### Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
@@ -17,14 +17,14 @@ const hugo = new Hugo();
 const fc = hugo.cacheFile('/path/to/file.to.process');
 
 // Define the change handler for processing your file
-fc.on("change", (cache, fileContents) => {
+fc.on('change', (cache, fileContents) => {
   // Process the file contents
   const foo = processFoo(fileContents);
   const bar = processBar(fileContents);
   
   // Set the results
-  cache.set("foo", foo);
-  cache.set("bar", bar);
+  cache.set('foo', foo);
+  cache.set('bar', bar);
 });
 
 // Get the results
@@ -37,7 +37,7 @@ console.log(results.bar); // Will output processed bar data
 #### With a 1-hour TTL
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 

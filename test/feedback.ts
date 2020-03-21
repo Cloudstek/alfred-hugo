@@ -1,8 +1,8 @@
-import test from "ava";
-import sinon from "sinon";
+import test from 'ava';
+import sinon from 'sinon';
 
-import { hugo } from "./helpers/init";
-import * as mock from "./helpers/mock";
+import { hugo } from './helpers/init';
+import * as mock from './helpers/mock';
 
 const backupConsoleLog = console.log;
 const backupConsoleError = console.error;
@@ -11,8 +11,8 @@ test.beforeEach(() => {
     mock.date();
 });
 
-test.serial("feedback without checking for updates", async (t) => {
-    const consoleStub = sinon.stub(console, "log");
+test.serial('feedback without checking for updates', async (t) => {
+    const consoleStub = sinon.stub(console, 'log');
 
     const h = hugo({
         checkUpdates: false,
@@ -20,9 +20,9 @@ test.serial("feedback without checking for updates", async (t) => {
 
     h.rerun = 3.2;
     h.items.push({
-        title: "foo",
+        title: 'foo',
     });
-    h.variables.foo = "bar";
+    h.variables.foo = 'bar';
 
     await h.feedback();
 
@@ -36,11 +36,11 @@ test.serial("feedback without checking for updates", async (t) => {
     t.falsy(h.rerun);
 });
 
-test.serial("check for updates on feedback", async (t) => {
-    const consoleStub = sinon.stub(console, "log");
+test.serial('check for updates on feedback', async (t) => {
+    const consoleStub = sinon.stub(console, 'log');
 
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
         updateNotification: false,
     });
 

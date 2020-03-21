@@ -13,7 +13,7 @@ if (process.getuid && process.getuid() === 0) {
     process.exit(1);
 }
 
-// Get alfred ersion
+// Get alfred version
 const apps = glob.sync('/Applications/Alfred?( )+([0-9]).app');
 
 for (const app of apps) {
@@ -51,7 +51,7 @@ for (const app of apps) {
 
                     // Skip if destination exists but is not a directory or symlink
                     if (destStat.isSymbolicLink() === false) {
-                        console.debug('Desination exists but is neither a directory or symlink, skipping.');
+                        console.debug('Destination exists but is neither a directory or symlink, skipping.');
                         return;
                     }
 
@@ -66,12 +66,10 @@ for (const app of apps) {
                 }
 
                 // Create symlink
-                fs.ensureSymlink(src, dest);
+                fs.ensureSymlinkSync(src, dest);
             })
             .catch((err) => {
                 console.error(err);
             });
-    } catch (err) {
-        continue;
-    }
+    } catch (err) {}
 }

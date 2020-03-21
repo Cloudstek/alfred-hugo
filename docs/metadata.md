@@ -45,7 +45,7 @@ Workflow metadata can be accessed through the `workflowMeta` property of Hugo.
 To save you some effort when you really want to blend in, Hugo has an easy way of loading the theme file for you (if it was found). You can access the active theme data using the `alfredTheme` property of Hugo.
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
@@ -57,7 +57,7 @@ const themeData = hugo.alfredTheme;
 ## Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 

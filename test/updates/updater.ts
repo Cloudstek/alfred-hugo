@@ -1,10 +1,10 @@
-import test from "ava";
-import sinon from "sinon";
-import moment from "moment";
-import nock from "nock";
+import test from 'ava';
+import sinon from 'sinon';
+import moment from 'moment';
+import nock from 'nock';
 
-import { hugo, updater } from "../helpers/init";
-import * as mock from "../helpers/mock";
+import { hugo, updater } from '../helpers/init';
+import * as mock from '../helpers/mock';
 
 const backupConsoleError = console.error;
 
@@ -12,25 +12,25 @@ test.beforeEach(() => {
     mock.date();
 });
 
-test("check with invalid update source as string", async (t) => {
+test('check with invalid update source as string', async (t) => {
     t.throws(() => {
         hugo({
-            updateSource: "foobar",
+            updateSource: 'foobar',
         });
-    }, {instanceOf: Error, message: "Invalid update source."});
+    }, {instanceOf: Error, message: 'Invalid update source.'});
 
     await t.throwsAsync(async () => {
-        return updater().checkUpdates("foobar");
-    }, {instanceOf: Error, message: "Invalid update source."});
+        return updater().checkUpdates('foobar');
+    }, {instanceOf: Error, message: 'Invalid update source.'});
 });
 
-test.serial("check update with no new updates", async (t) => {
+test.serial('check update with no new updates', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
     });
 
     // Ensure that no new version exists
-    process.env.alfred_workflow_version = "3.0.0";
+    process.env.alfred_workflow_version = '3.0.0';
 
     // Mock request
     mock.packal(1);
@@ -43,13 +43,13 @@ test.serial("check update with no new updates", async (t) => {
     t.is(h.output.items.length, 0);
 });
 
-test.serial("update notification only when checked online", async (t) => {
+test.serial('update notification only when checked online', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
         updateItem: false,
     });
 
-    const notifyStub = sinon.stub(h, "notify");
+    const notifyStub = sinon.stub(h, 'notify');
 
     // Mock request
     mock.packal(1);
@@ -68,13 +68,13 @@ test.serial("update notification only when checked online", async (t) => {
     t.is(h.items.length, 0);
 });
 
-test.serial("update item only", async (t) => {
+test.serial('update item only', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
         updateNotification: false,
     });
 
-    const notifyStub = sinon.stub(h, "notify");
+    const notifyStub = sinon.stub(h, 'notify');
 
     // Mock request
     mock.packal(1);
@@ -98,9 +98,9 @@ test.serial("update item only", async (t) => {
     t.snapshot(item);
 });
 
-test.serial("check update item", async (t) => {
+test.serial('check update item', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
         updateNotification: false,
     });
 
@@ -120,28 +120,28 @@ test.serial("check update item", async (t) => {
     t.snapshot(item);
 });
 
-test.serial("check for unpublished workflow twice within interval", async (t) => {
+test.serial('check for unpublished workflow twice within interval', async (t) => {
     const u = updater();
 
     // Mock request
     mock.packal(1, 404);
 
     // Check for update
-    let update = await u.checkUpdates("packal");
+    let update = await u.checkUpdates('packal');
 
-    t.is(typeof update, "undefined");
+    t.is(typeof update, 'undefined');
     t.true(nock.isDone());
 
     // Check for update the second time shortly after. No request should be made.
-    update = await u.checkUpdates("packal");
+    update = await u.checkUpdates('packal');
 
-    t.is(typeof update, "undefined");
+    t.is(typeof update, 'undefined');
 });
 
-test.serial("check for updates with updates disabled", async (t) => {
+test.serial('check for updates with updates disabled', async (t) => {
     const h = hugo({
         checkUpdates: false,
-        updateSource: "npm",
+        updateSource: 'npm',
     });
 
     // Mock request
@@ -155,11 +155,11 @@ test.serial("check for updates with updates disabled", async (t) => {
     nock.cleanAll();
 });
 
-test.serial("check for updates with update notification and item disabled", async (t) => {
+test.serial('check for updates with update notification and item disabled', async (t) => {
     const h = hugo({
         updateNotification: false,
         updateItem: false,
-        updateSource: "npm",
+        updateSource: 'npm',
     });
 
     // Mock request
@@ -173,10 +173,10 @@ test.serial("check for updates with update notification and item disabled", asyn
     nock.cleanAll();
 });
 
-test.serial("check for updates with updateInterval undefined", async (t) => {
+test.serial('check for updates with updateInterval undefined', async (t) => {
     const h = hugo({
         updateInterval: undefined,
-        updateSource: "npm",
+        updateSource: 'npm',
     });
 
     // Mock request
@@ -190,10 +190,10 @@ test.serial("check for updates with updateInterval undefined", async (t) => {
     nock.cleanAll();
 });
 
-test.serial("check for updates with updateInterval under one second", async (t) => {
+test.serial('check for updates with updateInterval under one second', async (t) => {
     const h = hugo({
-        updateInterval: moment.duration(1, "milliseconds"),
-        updateSource: "npm",
+        updateInterval: moment.duration(1, 'milliseconds'),
+        updateSource: 'npm',
     });
 
     // Mock request
@@ -207,12 +207,12 @@ test.serial("check for updates with updateInterval under one second", async (t) 
     nock.cleanAll();
 });
 
-test.serial("check for updates with invalid workflow version", async (t) => {
+test.serial('check for updates with invalid workflow version', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
     });
 
-    process.env.alfred_workflow_version = "foobar";
+    process.env.alfred_workflow_version = 'foobar';
 
     // Mock request
     mock.packal(1);
@@ -223,9 +223,9 @@ test.serial("check for updates with invalid workflow version", async (t) => {
     t.true(nock.isDone());
 });
 
-test.serial("check for updates with updates with unpublished package", async (t) => {
+test.serial('check for updates with updates with unpublished package', async (t) => {
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
     });
 
     // Mock request
@@ -237,11 +237,11 @@ test.serial("check for updates with updates with unpublished package", async (t)
     t.true(nock.isDone());
 });
 
-test.serial("check for updates with updates when exception occurs", async (t) => {
-    const consoleStub = sinon.stub(console, "error");
+test.serial('check for updates with updates when exception occurs', async (t) => {
+    const consoleStub = sinon.stub(console, 'error');
 
     const h = hugo({
-        updateSource: "packal",
+        updateSource: 'packal',
     });
 
     // Mock request
@@ -257,18 +257,18 @@ test.serial("check for updates with updates when exception occurs", async (t) =>
     h.cache.clear();
 
     // Check if debug message is output
-    process.env.alfred_debug = "1";
+    process.env.alfred_debug = '1';
 
     update = await h.checkUpdates();
 
     t.falsy(update);
     t.true(nock.isDone());
-    t.true(consoleStub.calledWith("Request failed with status code 500"));
+    t.true(consoleStub.calledWith('Request failed with status code 500'));
 });
 
 test.afterEach((t) => {
     if (!nock.isDone()) {
-        t.fail("Not all requests were performed.");
+        t.fail('Not all requests were performed.');
     }
 });
 
