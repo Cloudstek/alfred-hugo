@@ -13,7 +13,7 @@ if (process.getuid && process.getuid() === 0) {
     process.exit(1);
 }
 
-// Get alfred ersion
+// Get alfred version
 const apps = glob.sync('/Applications/Alfred?( )+([0-9]).app');
 
 for (const app of apps) {
@@ -54,7 +54,5 @@ for (const app of apps) {
 
                 del.sync(dest, { force: true });
             });
-    } catch (err) {
-        continue;
-    }
+    } catch (err) {}
 }

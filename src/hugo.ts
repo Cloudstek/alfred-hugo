@@ -60,7 +60,7 @@ export class Hugo {
         // Initialize updater
         this.updater = new Updater(this.cache, this.options.updateInterval);
 
-        // Notofier
+        // Notifier
         this.notifier = new NotificationCenter({
             withFallback: true,
         });
@@ -175,6 +175,7 @@ export class Hugo {
         // Check if version is valid
         if (version === null) {
             if (process.env.alfred_debug === '1') {
+                // eslint-disable-next-line max-len
                 console.error(`Invalid workflow version: ${process.env.alfred_workflow_version}. Open your workflow in Alfred, click on the [x]-Symbol and set a semantic version number.`);
             }
 
@@ -280,7 +281,7 @@ export class Hugo {
      *
      * This allows you to read and process the data once, then storing it in cache until the file has changed again.
      *
-     * @param filepath File path
+     * @param filePath File path
      * @param options Cache options
      *
      * @return FileCache

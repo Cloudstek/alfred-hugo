@@ -17,7 +17,7 @@ class Utils{
     }
 
     /**
-     * Resolve alfred prefrerences file path
+     * Resolve alfred preferences file path
      */
     resolveAlfredPrefs(version: string | semver.SemVer): string | null {
         if (typeof version === 'string') {
