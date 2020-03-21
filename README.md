@@ -11,7 +11,7 @@ Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script
 * Built-in cache and configuration storage
 * Advanced filtering of items using [Fuse.js](http://fusejs.io) :mag:
 * Fetch (JSON) from REST API's using [Axios](https://github.com/axios/axios) :earth_americas:
-* Update notifications (for both NPM and Packal workflows) :mailbox:
+* Update notifications :mailbox:
 
 ## Getting started
 
