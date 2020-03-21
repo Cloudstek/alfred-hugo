@@ -2,7 +2,7 @@
 
 Actions are an easy way to structure your workflow in-code without having to drag all kinds of nodes in to launch different script for each action. Now you can run one script and have it handle all your actions.
 
-Best way to understand is to look at the examples below!
+You can use them to do anything like run programs, manipulate files, whatever. You can also use them in [script filter inputs](https://www.alfredapp.com/help/workflows/inputs/script-filter/) for example to list the latest tweets for a hashtag you enter. Also see [./items.md] for more info and examples.
 
 ### Examples
 
@@ -76,3 +76,30 @@ node index.js list cars Porsche
 # Porsche, ahh very fancy cars!
 ```
 
+##### Simple script filter action
+
+```js
+    import { Hugo } from 'alfred-hugo';
+
+const hugo = new Hugo();
+
+// List action
+const listAction = hugo.action('list', (query) => {
+    // Add items
+    hugo.items.push({
+        title: 'Foo',
+        subtitle: 'Bar',
+        arg: 'foobar'
+    }, {
+        title: 'Hello',
+        subtitle: 'World',
+        arg: 'helloworld'
+    });
+    
+    // Flush output buffer
+    hugo.feedback();
+});
+
+// Run matching actions
+hugo.run();
+```
