@@ -10,8 +10,8 @@ import { LatestVersion, UpdateSource } from './types';
  * Hugo updater
  */
 export class Updater {
-    private cache: Cache;
-    private interval: number | moment.Duration;
+    private readonly cache: Cache;
+    private readonly interval: number | moment.Duration;
 
     /**
      * Hugo updater

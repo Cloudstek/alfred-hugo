@@ -1,7 +1,7 @@
 export class Action {
-    private actions: Action[];
-    private name: string;
-    private callback?: (query: string[]) => void;
+    private readonly actions: Action[];
+    private readonly name: string;
+    private readonly callback?: (query: string[]) => void;
 
     public constructor(name: string, callback?: (query: string[]) => void) {
         this.name = name;

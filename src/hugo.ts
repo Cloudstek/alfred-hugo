@@ -21,11 +21,11 @@ export class Hugo {
     public variables: { [key: string]: any } = {};
     public items: Item[] = [];
 
-    private actions: Action[];
-    private fuseDefaults: Fuse.FuseOptions<Item>;
+    private readonly actions: Action[];
+    private readonly fuseDefaults: Fuse.FuseOptions<Item>;
     private options: HugoOptions;
-    private updater: Updater;
-    private notifier: NotificationCenter;
+    private readonly updater: Updater;
+    private readonly notifier: NotificationCenter;
 
     public constructor(options?: HugoOptions) {
         // Save options
