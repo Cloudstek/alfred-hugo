@@ -1,3 +1,4 @@
+/* eslint-disable prefer-arrow/prefer-arrow-functions,@typescript-eslint/camelcase */
 import { Cache } from '@cloudstek/cache';
 import crypto from 'crypto';
 import path from 'path';
@@ -8,7 +9,7 @@ import sinon from 'sinon';
 
 import { Updater, Hugo, HugoOptions } from '../../src';
 
-export function setAlfredEnv() {
+export function setAlfredEnv(): void {
     process.env.alfred_version = '4.0.0';
     process.env.alfred_workflow_version = '1.0.0';
     process.env.alfred_workflow_bundleid = 'my.work.flow';
@@ -25,7 +26,7 @@ export function setAlfredEnv() {
     process.env.HOME = path.join('build', 'cache', crypto.randomBytes(8).toString('hex'));
 }
 
-export function hugo(options?: HugoOptions) {
+export function hugo(options?: HugoOptions): Hugo {
     setAlfredEnv();
 
     // Disable real HTTP requests with nock
@@ -55,7 +56,7 @@ export function hugo(options?: HugoOptions) {
     return h;
 }
 
-export function updater(cacheTtl?: number | moment.Duration) {
+export function updater(cacheTtl?: number | moment.Duration): Updater {
     setAlfredEnv();
 
     // Disable real HTTP requests with nock

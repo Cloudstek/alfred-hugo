@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import test from 'ava';
 import fs from 'fs-extra';
 import path from 'path';

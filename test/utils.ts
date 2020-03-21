@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import test from 'ava';
 import os from 'os';
 import path from 'path';
@@ -12,6 +13,7 @@ const homeDir = path.resolve('build', 'cache', crypto.randomBytes(8).toString('h
 sinon.stub(os, 'homedir').returns(homeDir);
 
 import utils from '../src/utils';
+import { hugo } from './helpers/init';
 
 test.serial('resolve alfred 3 preferences', (t) => {
     // Write new binary plist
@@ -177,6 +179,23 @@ test.serial('resolve non-existing alfred 3 preferences', (t) => {
     t.throws(() => {
         utils.resolveAlfredPrefs(semver.parse('3.0.0'));
     });
+});
+
+test.serial('resolve alfred 3 preferences using alfredMeta', (t) => {
+    const plist = bplist({});
+    const h = hugo();
+
+    process.env.alfred_version = '3.0.0';
+    delete process.env.alfred_preferences;
+
+    // Write file to expected path
+    const plistPath = path.join(homeDir, '/Library/Preferences/com.runningwithcrayons.Alfred-Preferences-3.plist');
+
+    fs.ensureFileSync(plistPath);
+    fs.writeFileSync(plistPath, plist);
+
+    t.is(typeof h.alfredMeta, 'object');
+    t.is(h.alfredMeta.preferences, path.join(homeDir, 'Library/Application Support/Alfred 3/Alfred.alfredpreferences'));
 });
 
 test.afterEach.always(() => {

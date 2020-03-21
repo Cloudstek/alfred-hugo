@@ -235,20 +235,20 @@ export class Hugo {
     }
 
     /**
-     * Run a callback when first script argument matches keyword. Callback will have second argument as query parameter.
+     * Run a callback when first script argument matches keyword. Callback wil have remaining arguments as argument.
      *
      * @example node index.js myaction "my query"
      *
-     * @param keyword Action name
+     * @param name Action name and optionally aliases
      * @param callback Callback to execute when query matches action name
      *
      * @return Action
      */
     public action(
-        keyword: string,
-        callback?: (query: string[]) => void,
+        name: string|string[],
+        callback?: (args: string[]) => void,
     ): Action {
-        const action = new Action(keyword, callback);
+        const action = new Action(name, callback);
 
         this.actions.push(action);
 

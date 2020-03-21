@@ -27,6 +27,30 @@ node index.js hello world
 # Hello world!
 ```
 
+##### Simple action with aliases
+
+```js
+import { Hugo } from 'alfred-hugo';
+
+const hugo = new Hugo();
+
+// Hello action
+hugo.action(['hi', 'hello'], (query) => {    
+    console.log(`Hello ${query}!`);
+});
+
+// Run matching actions
+hugo.run();
+```
+
+```sh
+node index.js hello world 
+# Hello world!
+
+node index.js hi world 
+# Hello world!
+```
+
 ##### Action with nested sub-actions
 
 ```js

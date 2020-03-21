@@ -61,11 +61,41 @@ test('exact match by single key', (t) => {
     t.deepEqual(matches[0], t.context.items[1]);
 });
 
+test('exact match by single key using weighted syntax', (t) => {
+    const h = hugo();
+
+    const matches = h.match(t.context.items, 'foo bar bleep', {
+        keys: [
+            { name: 'subtitle', weight: 0 }
+        ],
+        threshold: 0,
+    });
+
+    t.true(Array.isArray(matches));
+    t.is(matches.length, 1);
+    t.deepEqual(matches[0], t.context.items[1]);
+});
+
 test('exact match multiple keys', (t) => {
     const h = hugo();
 
     const matches = h.match(t.context.items, 'foo', {
         keys: ['title', 'subtitle'],
+    });
+
+    t.true(Array.isArray(matches));
+    t.is(matches.length, 4);
+    t.snapshot(matches);
+});
+
+test('exact match multiple keys using weighted syntax', (t) => {
+    const h = hugo();
+
+    const matches = h.match(t.context.items, 'foo', {
+        keys: [
+            { name: 'title', weight: 0 },
+            { name: 'subtitle', weight: 1 }
+        ],
     });
 
     t.true(Array.isArray(matches));
