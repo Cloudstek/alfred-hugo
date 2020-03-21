@@ -5,27 +5,27 @@ Alfred has a [pretty good matching](https://www.alfredapp.com/help/workflows/inp
 ### Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
 // Add multiple items
 hugo.items.push(
-  {
-    title: "Foo",
-    subtitle: "Bar",
-    arg: "foobar"
-  },
-  {
-    title: "Apple",
-    subtitle: "Pie",
-    arg: "omnomnom"
-  }
+    {
+        title: 'Foo',
+        subtitle: 'Bar',
+        arg: 'foobar'
+    },
+    {
+        title: 'Apple',
+        subtitle: 'Pie',
+        arg: 'omnomnom'
+    }
 );
 
 // Match items on arg
-const results = hugo.match(hugo.items, "omnom", {
-  keys: ["arg"]
+const results = hugo.match(hugo.items, 'omnom', {
+    keys: ['arg']
 });
 
 // Filter items, discarding non-matching items

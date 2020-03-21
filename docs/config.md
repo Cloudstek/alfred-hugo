@@ -9,16 +9,16 @@ You *can* let a configuration item expire but that is entirely optional and I'm 
 ### Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
 // No need to load anything, just use it!
 
-// Store "foo" with value "bar"
-hugo.config.set("foo", "bar");
+// Store 'foo' with value 'bar'
+hugo.config.set('foo', 'bar');
 
-// Get "foo"
-console.log(hugo.config.get("foo")); // bar
+// Get 'foo'
+console.log(hugo.config.get('foo')); // bar
 ```
 

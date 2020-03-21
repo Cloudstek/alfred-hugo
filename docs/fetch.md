@@ -9,27 +9,27 @@ Behind the scenes [Axios](https://github.com/axios/axios) is used to make the re
 ### Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
 // Fetch single todo item without caching
 hugo
-    .fetch("https://jsonplaceholder.typicode.com/todos/1")
+    .fetch('https://jsonplaceholder.typicode.com/todos/1')
 	.then((data) => {
     	console.log(`#${data.id} ${data.title}`);
 	});
 
 // Fetch todo list and cache it for 1 hour
 hugo
-    .fetch("https://jsonplaceholder.typicode.com/todos", {/* Axios options */}, 3600)
+    .fetch('https://jsonplaceholder.typicode.com/todos', {/* Axios options */}, 3600)
 	.then((data) => {
     	console.log(`${data.length} todo items fetched.`);
 	});
 
 // Fetch the todo list again, this time it's cached!
 hugo
-    .fetch("https://jsonplaceholder.typicode.com/todos", {/* Axios options */}, 3600)
+    .fetch('https://jsonplaceholder.typicode.com/todos', {/* Axios options */}, 3600)
 	.then((data) => {
     	console.log(`${data.length} todo items loaded from cache.`);
 	});

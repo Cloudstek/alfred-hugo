@@ -17,21 +17,21 @@ See [alfred-atom](https://github.com/Cloudstek/alfred-atom) for example which us
 #### Defaults
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo({
     checkUpdates: true, // Check for updates!
-    updateInterval: moment.duration(1, "day"), // Check for updates once a day
+    updateInterval: moment.duration(1, 'day'), // Check for updates once a day
     updateItem: true, // Show an item on the bottom of the list
     updateNotification: true, // Show a notification
-    updateSource: "npm" // Check NPM for updates
+    updateSource: 'npm' // Check NPM for updates
 });
 ```
 
 #### Disable updates
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo({
     checkUpdates: false

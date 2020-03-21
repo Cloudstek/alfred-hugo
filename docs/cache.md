@@ -13,23 +13,23 @@ For more details about [Cache](https://www.npmjs.com/package/@cloudstek/cache), 
 ### Example
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
-// Store "foo" with value "bar" for 1 hour
-hugo.cache.set("foo", "bar");
+// Store 'foo' with value 'bar' for 1 hour
+hugo.cache.set('foo', 'bar');
 
-// Store "pie" with value "apple" for 5 seconds
-hugo.cache.set("pie", "apple", 5);
+// Store 'pie' with value 'apple' for 5 seconds
+hugo.cache.set('pie', 'apple', 5);
 
-hugo.cache.has("pie"); // true
-hugo.cache.get("pie"); // apple
+hugo.cache.has('pie'); // true
+hugo.cache.get('pie'); // apple
 
 // Wait 5 seconds. ZzzZzZzZZz
 // sleep(5000);
 
-hugo.cache.has("pie"); // false
-hugo.cache.get("pie"); // undefined
+hugo.cache.has('pie'); // false
+hugo.cache.get('pie'); // undefined
 ```
 

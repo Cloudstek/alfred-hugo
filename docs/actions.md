@@ -9,18 +9,19 @@ Best way to understand is to look at the examples below!
 ##### Simple action
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
 // Hello action
-hugo.action("hello", (query) => {    
+hugo.action('hello', (query) => {    
     console.log(`Hello ${query}!`);
 });
 
 // Run matching actions
 hugo.run();
 ```
+
 ```sh
 node index.js hello world 
 # Hello world!
@@ -29,32 +30,32 @@ node index.js hello world
 ##### Action with nested sub-actions
 
 ```js
-import { Hugo } from "alfred-hugo";
+import { Hugo } from 'alfred-hugo';
 
 const hugo = new Hugo();
 
 // List action
-const listAction = hugo.action("list", (query) => {
-    console.log("Usage: list <bikes|cars> <brand>");
+const listAction = hugo.action('list', (query) => {
+    console.log('Usage: list <bikes|cars> <brand>');
 });
 
 // List bikes sub-action
-listAction.action("bikes", (query) => {
-	const brand = query[0] || "";
+listAction.action('bikes', (query) => {
+	const brand = query[0] || '';
     
 	console.log(`Here be a list of ${brand} bikes.`); 
 });
 
 // List cars sub-action
-const listCarsAction = listAction.action("cars", (query) => {
-    const brand = query[0] || "";
+    const listCarsAction = listAction.action('cars', (query) => {
+    const brand = query[0] || '';
     
     console.log(`Here be a list of ${brand} cars.`);
 });
 
 // Sub-action of the list cars sub-action.
-listCarsAction.action("Porsche", (query) => {
-   console.log("Porsche, ahh very fancy cars!"); 
+listCarsAction.action('Porsche', (query) => {
+    console.log('Porsche, ahh very fancy cars!'); 
 });
 
 // Run matching actions
