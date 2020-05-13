@@ -1,6 +1,7 @@
 # ![Hugo](https://cdn.rawgit.com/cloudstek/alfred-hugo/master/media/logo-hugo.svg)
 
 [![CircleCI](https://img.shields.io/circleci/build/github/Cloudstek/alfred-hugo.svg)](https://circleci.com/gh/Cloudstek/alfred-hugo) [![Coverage Status](https://coveralls.io/repos/github/Cloudstek/alfred-hugo/badge.svg?branch=master)](https://coveralls.io/github/Cloudstek/alfred-hugo?branch=master) [![Open Issues](https://img.shields.io/github/issues/Cloudstek/alfred-hugo.svg)](https://github.com/Cloudstek/alfred-hugo/issues) ![npm](https://img.shields.io/npm/dt/alfred-hugo.svg) ![GitHub](https://img.shields.io/github/license/Cloudstek/alfred-hugo.svg) ![GitHub stars](https://img.shields.io/github/stars/Cloudstek/alfred-hugo.svg)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCloudstek%2Falfred-hugo.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FCloudstek%2Falfred-hugo?ref=badge_shield)
 
 Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script-filter/) framework for your Alfred workflows. It can handle fetching and caching data, configuration storage, checking for updates and much much more. But I suppose you can use it for other purposes in your workflow as well :man_shrugging:
 
@@ -78,3 +79,6 @@ See [CONTRIBUTING](CONTRIBUTING.md) for more info about how to contribute.
 ## License
 
 BSD-2-Clause license, see [LICENSE](LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCloudstek%2Falfred-hugo.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FCloudstek%2Falfred-hugo?ref=badge_large)
