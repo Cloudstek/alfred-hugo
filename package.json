@@ -54,7 +54,7 @@
   "dependencies": {
     "@cloudstek/cache": "^1.0.5",
     "@types/node-notifier": "^6.0.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bplist-parser": "^0.2.0",
     "del": "^5.0.0",
     "fs-extra": "^9.0.0",
