@@ -2,6 +2,17 @@
 
 [![CircleCI](https://img.shields.io/circleci/build/github/Cloudstek/alfred-hugo.svg)](https://circleci.com/gh/Cloudstek/alfred-hugo) [![Coverage Status](https://coveralls.io/repos/github/Cloudstek/alfred-hugo/badge.svg?branch=master)](https://coveralls.io/github/Cloudstek/alfred-hugo?branch=master) [![Open Issues](https://img.shields.io/github/issues/Cloudstek/alfred-hugo.svg)](https://github.com/Cloudstek/alfred-hugo/issues) ![npm](https://img.shields.io/npm/dt/alfred-hugo.svg) ![GitHub](https://img.shields.io/github/license/Cloudstek/alfred-hugo.svg) ![GitHub stars](https://img.shields.io/github/stars/Cloudstek/alfred-hugo.svg)
 
+# 👋 Looking for a maintainer
+
+I haven't touched a Mac in years and thus have not been able to keep developing Hugo, so it is time to archive this repository 
+and possibly for someone to take over development.
+
+**If anyone would like to take over this project, please contact me. Otherwise, feel free to fork it!**
+
+To all that used, starred or contributed to Hugo, thank you so much!
+
+---
+
 Hugo is a [script filter](https://www.alfredapp.com/help/workflows/inputs/script-filter/) framework for your Alfred workflows. It can handle fetching and caching data, configuration storage, checking for updates and much much more. But I suppose you can use it for other purposes in your workflow as well :man_shrugging:
 
 ### Highlights
